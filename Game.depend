@@ -1,0 +1,19 @@
+# depslib dependency file v1.0
+1530307298 source:/home/roman/Desktop/Progs/Game/game.cpp
+	<SFML/Graphics.hpp>
+
+1530307298 source:/home/roman/Desktop/Progs/Game/main.cpp
+	<SFML/Graphics.hpp>
+	<stdio.h>
+	"game.cpp"
+
+1531801263 /home/roman/Desktop/Progs/Game/game.cpp
+	"game.h"
+
+1531797702 /home/roman/Desktop/Progs/Game/game.h
+	<SFML/Graphics.hpp>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<assert.h>
+
