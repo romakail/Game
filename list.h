@@ -1,8 +1,11 @@
-class zombie;
+//class zombie;
+//class arrow;
 
 template <class gObject>
 class list_T
 {
+	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList);
+
 	private:
 		int maxElements;
 		int nElements;
@@ -14,14 +17,23 @@ class list_T
 		gObject* elementsMassive;
 
     public:
+    	//Fundamental functions
         list_T (int maxElementsNumber);
         ~list_T ();
         gObject* addElement (gObject newElement);
         int deleteElement (gObject* deletedElement);
 
+		//Draw & move
         int draw ();
+		int moveAllElements();
 
-        int printfSmth();
+		//For dump:
+		int dump ();
+		int dumpAllElements();
+		int calculateNElements();
+
+		//For arrows:
+		int deleteUnnecessaryArrows();
 };
 
 
@@ -30,6 +42,7 @@ list_T<gObject>::list_T (int maxElementsNumber)
 {
     assert (maxElementsNumber > 0);
     maxElements = maxElementsNumber;
+    nElements = 0;
 
     elementsMassive = new gObject [maxElementsNumber];
 
@@ -106,7 +119,7 @@ gObject* list_T<gObject>::addElement (gObject newElement)
             freeHead = NULL;
             freeTail = NULL;
 		}
-		printf ("___1___");
+		//printf ("___1___");
         *emptySpace = newElement;
 
         assert (head->prev == NULL);
@@ -179,10 +192,6 @@ int list_T<gObject>::deleteElement (gObject* deletedElement)
 	if      (freeTail != NULL)
 	{
 		printf ("case freeTail != NULL\n");
-		//this->dumpAllArrows();
-		//this->dump();
-		//printf ("freeTail = %p\n", freeTail);
-		//printf ("freeTail->next = %p\n", freeTail->next);
 		assert (freeTail->next == NULL);
 
 	    freeTail->next = deletedElement;
@@ -195,7 +204,6 @@ int list_T<gObject>::deleteElement (gObject* deletedElement)
 	{
 		printf ("case freeTail == NULL");
         assert (freeHead == NULL);
-		//assert (freeTail->next == NULL);
 
         freeHead = deletedElement;
         freeTail = deletedElement;
@@ -221,13 +229,6 @@ int list_T<gObject>::draw()
 	if ((head != NULL) && (tail != NULL))
 	{
 		gObject* drawedElement = head;
-        /*
-        do
-        {
-            drawedArrow->draw();
-            drawedArrow = drawedArrow->next;
-        } while (drawedArrow->next != NULL);
-        */
         while (drawedElement != NULL)
         {
             drawedElement->draw ();
@@ -242,9 +243,9 @@ int list_T<gObject>::draw()
 //-------------------------------------------------------------------------------------------------------------------------------
 
 template <class gObject>
-int list_T<::dump()
+int list_T<gObject>::dump()
 {
-    printf ("maxElements = %d, nElements = %d\n", maxArrows, nArrows);
+    printf ("maxElements = %d, nElements = %d\n", maxElements, nElements);
     printf ("calculatednElements = %d\n", this->calculateNElements());
     printf ("head =     %p\n", head);
     printf ("tail =     %p\n", tail);
@@ -261,66 +262,118 @@ int list_T<::dump()
 //-------------------------------------------------------------------------------------------------------------------------------
 
 template <class gObject>
-int list_T::calculateNElements ()
+int list_T<gObject>::calculateNElements ()
 {
     int nElems = 0;
-    arrow* checkedArrow = head;
+    gObject* checkedElement = head;
 
     if (head != NULL)
     {
-        while (checkedArrow != NULL)
+        while (checkedElement != NULL)
         {
             nElems++;
-            checkedArrow = checkedArrow->next;
+            checkedElement = checkedElement->next;
 		}
     }
-    printf ("ActivatedArrows = %d\n", nElems);
+    printf ("ActivatedElements = %d\n", nElems);
 
     int nFreeElems = 0;
     if (freeHead != NULL)
     {
-    	checkedArrow = freeHead;
-        while (checkedArrow != NULL)
+    	checkedElement = freeHead;
+        while (checkedElement != NULL)
         {
             nElems++;
             nFreeElems++;
-            checkedArrow = checkedArrow->next;
+            checkedElement = checkedElement->next;
         }
     }
-    printf ("FreeArrows = %d\n", nFreeElems);
-    return nArrows;
+    printf ("FreeElements = %d\n", nFreeElems);
+    return nElems;
 }
 
 //---------------------------------------------------------------------------------------------------
 
 template <class gObject>
-int list_T::dumpAllArrows()
+int list_T<gObject>::dumpAllElements()
 {
-    printf ("ACTIVE ARROWS:\n");
+    printf ("ACTIVE ELEMENTS:\n");
 
-    arrow* dumpedArrow = head;
-    while (dumpedArrow != NULL)
+    gObject* dumpedElement = head;
+    while (dumpedElement != NULL)
     {
-        printf ("prev = %p\n", dumpedArrow->prev);
-		printf ("this = %p\n", dumpedArrow);
-		printf ("next = %p\n\n", dumpedArrow->next);
-		dumpedArrow = dumpedArrow->next;
+        printf ("prev = %p\n", dumpedElement->prev);
+		printf ("this = %p\n", dumpedElement);
+		printf ("next = %p\n\n", dumpedElement->next);
+		dumpedElement = dumpedElement->next;
     }
-	printf ("FREE ARROWS:\n");
-	dumpedArrow = freeHead;
+	printf ("FREE ELEMENTS:\n");
+	dumpedElement = freeHead;
 
-	while (dumpedArrow != NULL)
+	while (dumpedElement != NULL)
 	{
-    	printf ("prev = %p\n", dumpedArrow->prev);
-		printf ("this = %p\n", dumpedArrow);
-		printf ("next = %p\n\n", dumpedArrow->next);
-		dumpedArrow = dumpedArrow->next;
+    	printf ("prev = %p\n", dumpedElement->prev);
+		printf ("this = %p\n", dumpedElement);
+		printf ("next = %p\n\n", dumpedElement->next);
+		dumpedElement = dumpedElement->next;
 	}
 	printf ("================================================================\n");
 	return 0;
 }
 
+//------------------------------------------------------------------------------
 
+template <class gObject>
+int list_T<gObject>::moveAllElements ()
+{
+	printf ("I have started moving\n");
+    if ((head != NULL) && (tail != NULL))
+    {
+    	gObject* movedElement = head;
+    	while (movedElement != NULL)
+    	{
+			movedElement->changePosition();
+            movedElement = movedElement->next;
+    	}
+    }
+
+    printf ("I have finished moving\n");
+	return 0;
+}
+
+//------------------------------------------------------------------------------
+
+template<>
+int list_T<arrow>::deleteUnnecessaryArrows ()
+{
+	printf ("I have stared deleting\n");
+	int nDeletedArrows = 0;
+
+	if ((head != NULL) && (tail != NULL))
+	{
+    	arrow* checkedArrow = head;
+
+        do
+        {
+            if 	((checkedArrow->pos.x < 0 - 10) ||
+            	 (checkedArrow->pos.y < 0 - 10) ||
+				 (checkedArrow->pos.x > WINDOW_LENGHT + 10) ||
+				 (checkedArrow->pos.y > WINDOW_HEIGHT + 10)
+				)
+			{
+                this->deleteElement(checkedArrow);
+				nDeletedArrows++;
+			}
+			checkedArrow = checkedArrow->next;
+
+        } while(checkedArrow != NULL);
+    }
+
+	printf ("I have finished deleting\n");
+	return nDeletedArrows;
+}
+
+//--------------------------------------------------------------------------------------------
 
 
 

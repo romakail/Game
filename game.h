@@ -4,8 +4,6 @@
 #include <math.h>
 #include <assert.h>
 
-#include "list.h"
-
 
 const int WINDOW_HEIGHT = 900;
 const int WINDOW_LENGHT = 900;
@@ -14,10 +12,11 @@ const float MAIN_CHARACTER_SPEED = 10;
 const float MAIN_CHARACTER_RADIUS = 75;
 
 const float ARROW_SPEED = 20;
-const int MAX_ARROWS = 10;
+const int MAX_ARROWS = 35;
 const float ARROW_LENGHT = 40;
 
 const float ZOMBIE_RADIUS = 50;
+const int MAX_ZOMBIES = 35;
 
 const double SQRT2 = sqrt (0.5);
 const float DEGREES_IN_RADIAN = 57.2956;
@@ -33,6 +32,8 @@ class arrow;
 class zombie;
 class arrows_list;
 
+template <class gObject>
+class list_T;
 
 class gameObject
 {
@@ -53,8 +54,10 @@ class gameObject
 class arrow : public gameObject
 {
     friend class player;
+    friend class list_T<arrow>;
 
 	friend bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow);
+	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList);
 
     private:
         float Vmax;
@@ -72,10 +75,84 @@ class arrow : public gameObject
 
         int draw ();
 
-    friend class arrows_list;
+    //friend class arrows_list;
 };
 
 
+class player : public gameObject
+{
+    private:
+        float Vmax;
+        float radius;
+        sf::CircleShape shape;
+
+    public:
+        player (sf::Vector2f position, float mainCharacterSpeed, float mainCharacterRadius);
+
+        int control ();
+        int draw ();
+        arrow shoot(float shootSpeed);
+};
+
+class zombie : public gameObject
+{
+	friend class list_T<zombie>;
+
+	friend bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow);
+	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList);
+
+    private:
+    	float Vmax;
+    	float radius;
+        sf::CircleShape shape;
+
+	protected:
+        zombie* next;
+        zombie* prev;
+
+    public:
+    	zombie ();
+        zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius);
+        zombie& operator= (const zombie& right);
+
+        int draw();
+};
+
+
+#include "list.h"
+#include "coordinateList.h"
+
+
+zombie createZombie ();
+int game ();
+int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter);
+int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 class arrows_list
 {
     private:
@@ -102,47 +179,4 @@ class arrows_list
         int dumpAllArrows ();
         int calculateNArrows();
 };
-
-class player : public gameObject
-{
-    private:
-        float Vmax;
-        float radius;
-        sf::CircleShape shape;
-
-    public:
-        player (sf::Vector2f position, float mainCharacterSpeed, float mainCharacterRadius);
-
-        int control ();
-        int draw ();
-        arrow shoot(float shootSpeed);
-};
-
-class zombie : public gameObject
-{
-	friend class list_T<zombie>;
-
-	friend bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow);
-
-    private:
-    	float Vmax;
-    	float radius;
-        sf::CircleShape shape;
-
-	protected:
-        zombie* next;
-        zombie* prev;
-
-    public:
-    	zombie ();
-        zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius);
-        zombie& operator= (const zombie& right);
-
-        int draw();
-};
-
-
-
-zombie createZombie ();
-int game ();
-int arrowPhysicsManager (arrows_list* arrowsList, player* mainCharacter);
+*/
