@@ -34,6 +34,7 @@
 		</Compiler>
 		<Unit filename="game.cpp" />
 		<Unit filename="game.h" />
+		<Unit filename="list.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

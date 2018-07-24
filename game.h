@@ -4,6 +4,7 @@
 #include <math.h>
 #include <assert.h>
 
+#include "list.h"
 
 
 const int WINDOW_HEIGHT = 900;
@@ -14,6 +15,9 @@ const float MAIN_CHARACTER_RADIUS = 75;
 
 const float ARROW_SPEED = 20;
 const int MAX_ARROWS = 10;
+const float ARROW_LENGHT = 40;
+
+const float ZOMBIE_RADIUS = 50;
 
 const double SQRT2 = sqrt (0.5);
 const float DEGREES_IN_RADIAN = 57.2956;
@@ -21,6 +25,14 @@ const float PI = 3.1416;
 const float EXTENDED_ANGLE = 180;
 
 sf::RenderWindow* window = nullptr;
+
+
+class gameObject;
+class player;
+class arrow;
+class zombie;
+class arrows_list;
+
 
 class gameObject
 {
@@ -41,9 +53,12 @@ class gameObject
 class arrow : public gameObject
 {
     friend class player;
+
+	friend bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow);
+
     private:
         float Vmax;
-        float radius;
+        float lenght;
         sf::RectangleShape shape;
 
     protected:
@@ -103,5 +118,31 @@ class player : public gameObject
         arrow shoot(float shootSpeed);
 };
 
+class zombie : public gameObject
+{
+	friend class list_T<zombie>;
+
+	friend bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow);
+
+    private:
+    	float Vmax;
+    	float radius;
+        sf::CircleShape shape;
+
+	protected:
+        zombie* next;
+        zombie* prev;
+
+    public:
+    	zombie ();
+        zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius);
+        zombie& operator= (const zombie& right);
+
+        int draw();
+};
+
+
+
+zombie createZombie ();
 int game ();
 int arrowPhysicsManager (arrows_list* arrowsList, player* mainCharacter);

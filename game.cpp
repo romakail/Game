@@ -1,9 +1,6 @@
 
 #include "game.h"
 
-
-
-
 int game()
 {
     sf::RenderWindow Window(sf::VideoMode(WINDOW_HEIGHT, WINDOW_LENGHT), "SFML works!");
@@ -21,6 +18,10 @@ int game()
     arrows_list arrowsList (MAX_ARROWS);
 	arrowsList.dumpAllArrows();
 	arrowsList.dump();
+    //
+
+    //
+    list_T<zombie> zombieList (30);
     //
 
     while (window->isOpen())
@@ -55,6 +56,11 @@ int game()
 		*/
         arrowPhysicsManager(&arrowsList, &mainCharacter);
 
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
+			{
+				zombieList.addElement(createZombie());
+			}
+
         //
 
         //----drawing functions
@@ -67,6 +73,7 @@ int game()
         arrowsList.draw();
         //
 
+		zombieList.draw();
 
         //--------------------
 
@@ -332,8 +339,13 @@ int gameObject::changeLocation()
 
 arrow::arrow (sf::Vector2f position, sf::Vector2f speed) : gameObject (position, speed)
 {
-    shape = sf::RectangleShape(sf::Vector2f(40, 3));
+    shape = sf::RectangleShape(sf::Vector2f(ARROW_LENGHT, 3));
     shape.setFillColor(sf::Color::Black);
+
+    lenght = ARROW_LENGHT;
+
+    next = NULL;
+    prev = NULL;
 
     shape.setPosition(position);
     printf ("I have constructed an arrow\n");
@@ -343,8 +355,13 @@ arrow::arrow (sf::Vector2f position, sf::Vector2f speed) : gameObject (position,
 
 arrow::arrow () : gameObject (sf::Vector2f(0, 0), sf::Vector2f(0, 0))
 {
-    shape =  sf::RectangleShape(sf::Vector2f(40, 3));
+    shape =  sf::RectangleShape(sf::Vector2f(ARROW_LENGHT, 3));
     shape.setFillColor(sf::Color::Black);
+
+    lenght = ARROW_LENGHT;
+
+    next = NULL;
+    prev = NULL;
 
     printf ("I have constructed an empty arrow\n");
 }
@@ -358,7 +375,7 @@ arrow& arrow::operator= (const arrow& right)
         return *this;
 
     Vmax = right.Vmax;
-	radius = right.radius;
+	lenght = right.lenght;
     shape = right.shape;
 
     pos = right.pos;
@@ -393,7 +410,7 @@ arrows_list::arrows_list (int maxArrowsNumber)
     tail = NULL;
 
     freeHead = arrowsMassive;
-    freeTail = & (arrowsMassive [maxArrowsNumber-1]);
+    freeTail = & (arrowsMassive [maxArrowsNumber - 1]);
 
     freeHead->prev = NULL;
     freeTail->next = NULL;
@@ -732,7 +749,107 @@ int arrows_list::dumpAllArrows()
 	return 0;
 }
 
-//-----------------------------------------------------------------------------------------------------------------------------------
+//==========zombies===================================================================================================
+
+zombie::zombie () : gameObject(sf::Vector2f (0, 0), sf::Vector2f(0, 0))
+{
+    Vmax = 0;
+    radius = 0;
+
+    shape = sf::CircleShape(100.f);
+    shape.setFillColor(sf::Color::Red);  //If something red is drawn it is a mistake
+    shape.setRadius(radius);
+    shape.setOrigin(radius, radius);
+
+    next = NULL;
+    prev = NULL;
+
+    printf ("I have created an empty zombie\n");
+}
+
+//-------------------------------------------------------------------------------------------------------------------------------
+
+zombie::zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius) : gameObject(position, sf::Vector2f(0, 0))
+{
+    Vmax = zombieSpeed;
+	radius = zombieRadius;
+
+    shape = sf::CircleShape(100.f);
+    shape.setFillColor(sf::Color::Green);
+    shape.setRadius(radius);
+    shape.setOrigin(radius, radius);
+
+    next = NULL;
+    prev = NULL;
+
+    printf ("I have created a zombie\n");
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+
+zombie& zombie::operator= (const zombie& right)
+{
+	printf ("I am using operator =\n");
+    if (this == &right)
+    	return *this;
+
+    Vmax = right.Vmax;
+    radius = right.radius;
+    shape = right.shape;
+
+    pos = right.pos;
+    v = right.v;
+
+    return *this;
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------
+
+int zombie::draw ()
+{
+	shape.setPosition(pos);
+    window->draw(shape);
+
+	return 0;
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------------
+
+zombie createZombie ()
+{
+	static float i = 0;
+	i++;
+
+    return zombie (sf::Vector2f(WINDOW_LENGHT/2 + cos (i) * 200, WINDOW_HEIGHT/2 + sin (i) * 200), 10, 25);
+}
+
+
+
+// 1 (true)  - collided
+// 0 (false) - not collided
+bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow)
+{
+    assert (Zombie);
+    assert (Arrow);
+	assert (Zombie->radius > 0);
+    assert (Arrow->lenght > 0);
+
+    if (  ((Zombie->pos.x - Arrow->pos.x) * (Zombie->pos.x - Arrow->pos.x) + (Zombie->pos.y - Arrow->pos.y) * (Zombie->pos.y - Arrow->pos.y)) < Zombie->radius)
+    	return 1;
+	else
+		return 0;
+
+
+	assert (0);
+	return 0;
+}
+
+
+
+
+
+
+
 
 
 
