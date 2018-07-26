@@ -74,11 +74,11 @@ list_T<gObject>::~list_T ()
 template <class gObject>
 gObject* list_T<gObject>::addElement (gObject newElement)
 {
-    printf ("I have started adding an element\n");
+    //printf ("I have started adding an element\n");
 
     if (nElements == 0)
     {
-    	printf ("case nElements == 0\n");
+    	//printf ("case nElements == 0\n");
         assert (head == NULL);
         assert (tail == NULL);
 
@@ -101,7 +101,7 @@ gObject* list_T<gObject>::addElement (gObject newElement)
     }
     else if ((nElements > 0) && (nElements < maxElements))
     {
-    	printf ("case 0 < nElements < max\n");
+    	//printf ("case 0 < nElements < max\n");
         nElements++;
 
 		assert (freeHead->prev == NULL);
@@ -132,6 +132,9 @@ gObject* list_T<gObject>::addElement (gObject newElement)
     }
     else if (nElements == maxElements)
     {
+    	assert (freeHead == NULL);
+    	assert (freeTail == NULL);
+
     	printf ("case nElements == max\n");
         printf ("I cannot add anymore Elements\n");
         return 0;
@@ -150,10 +153,10 @@ gObject* list_T<gObject>::addElement (gObject newElement)
 template <class gObject>
 int list_T<gObject>::deleteElement (gObject* deletedElement)
 {
-	printf ("I have started deleting a certain gObject\n");
+	//printf ("I have started deleting a certain gObject from a list\n");
     assert (deletedElement);
     assert (nElements > 0);
-    assert ((deletedElement >= &deletedElement[0]) && (deletedElement <= &deletedElement[maxElements]));
+    assert ((deletedElement >= &elementsMassive[0]) && (deletedElement <= &elementsMassive[maxElements]));
 
     if      ((deletedElement->next != NULL) && (deletedElement->prev != NULL))
     {
@@ -188,10 +191,12 @@ int list_T<gObject>::deleteElement (gObject* deletedElement)
 		assert (0);
 	}
 
-	printf ("---1---\n");
+
+
+
 	if      (freeTail != NULL)
 	{
-		printf ("case freeTail != NULL\n");
+		//printf ("case freeTail != NULL\n");
 		assert (freeTail->next == NULL);
 
 	    freeTail->next = deletedElement;
@@ -202,7 +207,7 @@ int list_T<gObject>::deleteElement (gObject* deletedElement)
 	}
 	else if (freeTail == NULL)
 	{
-		printf ("case freeTail == NULL");
+		//printf ("case freeTail == NULL");
         assert (freeHead == NULL);
 
         freeHead = deletedElement;
@@ -216,7 +221,7 @@ int list_T<gObject>::deleteElement (gObject* deletedElement)
 		printf ("whaaaaat?\n");
 	}
 
-	printf ("I have finished deleting a cerain gObject\n");
+	//printf ("I have finished deleting a cerain gObject\n");
 	return 0;
 }
 
@@ -225,7 +230,7 @@ int list_T<gObject>::deleteElement (gObject* deletedElement)
 template <class gObject>
 int list_T<gObject>::draw()
 {
-	printf ("I have started drawing all gObjects\n");
+	//printf ("I have started drawing all gObjects of list\n");
 	if ((head != NULL) && (tail != NULL))
 	{
 		gObject* drawedElement = head;
@@ -236,7 +241,7 @@ int list_T<gObject>::draw()
         }
 	}
 
-	printf ("I have finished drawing all gObjects\n");
+	//printf ("I have finished drawing all gObjects of list\n");
 	return 0;
 }
 
@@ -326,7 +331,7 @@ int list_T<gObject>::dumpAllElements()
 template <class gObject>
 int list_T<gObject>::moveAllElements ()
 {
-	printf ("I have started moving\n");
+	//printf ("I have started moving\n");
     if ((head != NULL) && (tail != NULL))
     {
     	gObject* movedElement = head;
@@ -337,7 +342,7 @@ int list_T<gObject>::moveAllElements ()
     	}
     }
 
-    printf ("I have finished moving\n");
+    //printf ("I have finished moving\n");
 	return 0;
 }
 
@@ -346,7 +351,7 @@ int list_T<gObject>::moveAllElements ()
 template<>
 int list_T<arrow>::deleteUnnecessaryArrows ()
 {
-	printf ("I have stared deleting\n");
+	//printf ("I have stared deleting\n");
 	int nDeletedArrows = 0;
 
 	if ((head != NULL) && (tail != NULL))
@@ -369,7 +374,7 @@ int list_T<arrow>::deleteUnnecessaryArrows ()
         } while(checkedArrow != NULL);
     }
 
-	printf ("I have finished deleting\n");
+	//printf ("I have finished deleting\n");
 	return nDeletedArrows;
 }
 

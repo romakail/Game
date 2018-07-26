@@ -18,6 +18,11 @@ const float ARROW_LENGHT = 40;
 const float ZOMBIE_RADIUS = 50;
 const int MAX_ZOMBIES = 35;
 
+const float COIN_RADIUS = 5;
+const int MAX_COINS = 30;
+const int COIN_LINES_IN_LIST_X = 10;
+const int COIN_LINES_IN_LIST_Y = 10;
+
 const double SQRT2 = sqrt (0.5);
 const float DEGREES_IN_RADIAN = 57.2956;
 const float PI = 3.1416;
@@ -34,6 +39,9 @@ class arrows_list;
 
 template <class gObject>
 class list_T;
+
+template <class gObject>
+class coordinateList_T;
 
 class gameObject
 {
@@ -118,6 +126,25 @@ class zombie : public gameObject
         int draw();
 };
 
+class coin : public gameObject
+{
+	friend class coordinateList_T<coin>;
+
+    private:
+        int value;
+        sf::CircleShape shape;
+
+    protected:
+        coin* next;
+        coin* prev;
+
+    public:
+        coin ();
+        coin (sf::Vector2f position, int value);
+        coin& operator= (const coin& right);
+
+        int draw ();
+};
 
 #include "list.h"
 #include "coordinateList.h"

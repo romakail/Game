@@ -26,6 +26,11 @@ int game()
     zombieList.dump();
     //
 
+    //
+	coordinateList_T<coin> coinsList (MAX_COINS, COIN_LINES_IN_LIST_X, COIN_LINES_IN_LIST_Y);
+
+    //
+
     while (window->isOpen())
     {
         sf::Event event;
@@ -60,11 +65,18 @@ int game()
 
 		//creating zombies
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
-			{
-				zombieList.addElement(createZombie());
-			}
+		{
+			zombieList.addElement(createZombie());
+		}
 
         managerZombiesVsArrows(&zombieList, &arrowsList);
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+        {
+        	printf ("I am creating a coin\n");
+            coinsList.addElement(coin(sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y), 5));
+        }
+
 
         //----drawing functions
 
@@ -75,12 +87,13 @@ int game()
         //theOnlyArrow.draw();
         arrowsList.draw();
         //
-
 		zombieList.draw();
 
+		printf ("before staring drawing coins\n");
+		coinsList.draw();
         //--------------------
 
-        arrowsList.dump();
+        //arrowsList.dump();
         printf ("//---------------------------------------//\n");
         window->display();
     }
@@ -260,7 +273,7 @@ int player::draw()
 
 arrow player::shoot(float shootSpeed)
 {
-	printf ("start of a shoot\n");
+	//printf ("start of a shoot\n");
     float cursorX = static_cast<float> (sf::Mouse::getPosition(*window).x);
     float cursorY = static_cast<float> (sf::Mouse::getPosition(*window).y);
 
@@ -276,7 +289,7 @@ arrow player::shoot(float shootSpeed)
     else
         realisedArrow.shape.setRotation(- asin(sin) * DEGREES_IN_RADIAN);
 
-	printf ("end of a shoot\n");
+	//printf ("end of a shoot\n");
 	return realisedArrow;
 }
 
@@ -293,7 +306,7 @@ arrow::arrow (sf::Vector2f position, sf::Vector2f speed) : gameObject (position,
     prev = NULL;
 
     shape.setPosition(position);
-    printf ("I have constructed an arrow\n");
+    //printf ("I have constructed an arrow\n");
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -315,7 +328,7 @@ arrow::arrow () : gameObject (sf::Vector2f(0, 0), sf::Vector2f(0, 0))
 
 arrow& arrow::operator= (const arrow& right)
 {
-	printf ("I am using operator =\n");
+	//printf ("I am using operator =\n");
 	if (this == &right)
         return *this;
 
@@ -356,7 +369,7 @@ zombie::zombie () : gameObject(sf::Vector2f (0, 0), sf::Vector2f(0, 0))
     next = NULL;
     prev = NULL;
 
-    printf ("I have created an empty zombie\n");
+    //printf ("I have created an empty zombie\n");
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -374,14 +387,14 @@ zombie::zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius) : 
     next = NULL;
     prev = NULL;
 
-    printf ("I have created a zombie\n");
+    //printf ("I have created a zombie\n");
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 
 zombie& zombie::operator= (const zombie& right)
 {
-	printf ("I am using operator =\n");
+	//printf ("I am using operator = of zombie\n");
     if (this == &right)
     	return *this;
 
@@ -444,7 +457,7 @@ int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsLis
 	assert (zombieList);
 	assert (arrowsList);
 
-	printf ("I am in manager\n");
+	//printf ("I am in manager\n");
 
     int nCollisions = 0;
 
@@ -467,15 +480,64 @@ int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsLis
         collidedArrow = collidedArrow->next;
     }
 
-    printf ("nCollisions = %d\n", nCollisions);
-    printf ("I return from manager\n");
+    //printf ("nCollisions = %d\n", nCollisions);
+    //printf ("I return from manager\n");
 	return nCollisions;
 }
 
+//===============COINS===========================================================
 
+coin::coin () : gameObject(sf::Vector2f(0, 0), sf::Vector2f(0, 0))
+{
+    value = 0;
 
+	shape = sf::CircleShape(100.f);
+    shape.setFillColor(sf::Color::Red);  //If something red is drawn it is a mistake
+    shape.setRadius(COIN_RADIUS);
 
+    printf ("I have created an empty coin\n");
+}
 
+//------------------------------------------------------------------------------------------------------
+
+coin::coin(sf::Vector2f position, int coinValue) : gameObject (position, sf::Vector2f(0, 0))
+{
+	value = coinValue;
+
+	shape = sf::CircleShape(100.f);
+    shape.setFillColor(sf::Color::Yellow);
+    shape.setRadius(COIN_RADIUS);
+    shape.setOrigin(COIN_RADIUS, COIN_RADIUS);
+
+    ("I have created a coin\n");
+}
+
+//-----------------------------------------------------------------------------------------------
+
+coin& coin::operator= (const coin& right)
+{
+	printf ("I am using operator = of a coin\n");
+    if (this == &right)
+    	return *this;
+
+    value = right.value;
+    shape = right.shape;
+
+    pos = right.pos;
+    v = right.v;
+
+    return *this;
+}
+
+//------------------------------------------------------------------------------------------------------
+
+int coin::draw ()
+{
+	shape.setPosition(pos);
+    window->draw(shape);
+
+	return 0;
+}
 
 
 
