@@ -69,13 +69,15 @@ int game()
 			zombieList.addElement(createZombie());
 		}
 
-        managerZombiesVsArrows(&zombieList, &arrowsList);
+        managerZombiesVsArrows(&zombieList, &arrowsList, &coinsList);
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
         {
         	printf ("I am creating a coin\n");
-            coinsList.addElement(coin(sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y), 5));
+        	printf ("Mouse position: X = %d, Y = %d\n", sf::Mouse::getPosition(*window).x, sf::Mouse::getPosition(*window).y);
+            coinsList.addElement(coin(sf::Vector2f(sf::Mouse::getPosition(*window).x, sf::Mouse::getPosition(*window).y), COIN_VALUE, COIN_RADIUS));
         }
+        managerPlayerVsCoins(&mainCharacter, &coinsList);
 
 
         //----drawing functions
@@ -97,6 +99,16 @@ int game()
         printf ("//---------------------------------------//\n");
         window->display();
     }
+    printf ("___ZOMBIES___\n");
+    zombieList.dump();
+    zombieList.dumpAllElements();
+    printf ("___ARROWS___\n");
+    arrowsList.dump();
+    arrowsList.dumpAllElements();
+    printf ("___COINS___\n");
+    coinsList.dump();
+    coinsList.dumpHeadsAndTails();
+    printf ("\n\nTHANKS FOR PLAYING\n");
 
     return 0;
 }
@@ -410,6 +422,13 @@ zombie& zombie::operator= (const zombie& right)
 
 //-----------------------------------------------------------------------------------------------------------------------------
 
+sf::Vector2f zombie::getPosition ()
+{
+    return pos;
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------
+
 int zombie::draw ()
 {
 	shape.setPosition(pos);
@@ -428,11 +447,69 @@ zombie createZombie ()
     return zombie (sf::Vector2f(WINDOW_LENGHT/2 + cos (i) * 200, WINDOW_HEIGHT/2 + sin (i) * 200), 10, 25);
 }
 
-//------------------------------------------------------------------------------------------------------------------------------------------
 
+//===============COINS===========================================================
+
+coin::coin () : gameObject(sf::Vector2f(0, 0), sf::Vector2f(0, 0))
+{
+    value = 0;
+    radius = 0;
+
+	shape = sf::CircleShape(100.f);
+    shape.setFillColor(sf::Color::Red);  //If something red is drawn it is a mistake
+    shape.setRadius(COIN_RADIUS);
+
+    printf ("I have created an empty coin\n");
+}
+
+//------------------------------------------------------------------------------------------------------
+
+coin::coin(sf::Vector2f position, int coinValue, float coinRadius) : gameObject (position, sf::Vector2f(0, 0))
+{
+	value = coinValue;
+	radius = coinRadius;
+
+	shape = sf::CircleShape(100.f);
+    shape.setFillColor(sf::Color::Blue);
+    shape.setRadius(coinRadius);
+    shape.setOrigin(coinRadius, coinRadius);
+
+    ("I have created a coin\n");
+}
+
+//-----------------------------------------------------------------------------------------------
+
+coin& coin::operator= (const coin& right)
+{
+	printf ("I am using operator = of a coin\n");
+    if (this == &right)
+    	return *this;
+
+    value = right.value;
+    radius = right.radius;
+    shape = right.shape;
+
+    pos = right.pos;
+    v = right.v;
+
+    return *this;
+}
+
+//------------------------------------------------------------------------------------------------------
+
+int coin::draw ()
+{
+	shape.setPosition(pos);
+    window->draw(shape);
+
+	return 0;
+}
+
+//============COLLIDERЫ=============================================================================
 // 1 (true)  - collided
 // 0 (false) - not collided
-bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow)
+
+bool colliderZombieVsArrow (zombie* Zombie, arrow* Arrow)
 {
     assert (Zombie);
     assert (Arrow);
@@ -449,10 +526,28 @@ bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow)
 	return 0;
 }
 
-//---------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+
+bool colliderPlayerVsCoin (player* Player, coin* Coin)
+{
+    assert (Player);
+    assert (Coin);
+    assert (Player->radius > 0);
+    assert (Coin->radius > 0);
+
+    if ( ((Player->pos.x - Coin->pos.x) * (Player->pos.x - Coin->pos.x) + (Player->pos.y - Coin->pos.y) * (Player->pos.y - Coin->pos.y)) < (Player->radius + Coin->radius) * (Player->radius + Coin->radius))
+    	return 1;
+	else
+        return 0;
+
+	assert (0);
+	return 0;
+}
+
+//================MANAGMENT======================================================================================
 
 //returns number of collisions
-int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList)
+int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList)
 {
 	assert (zombieList);
 	assert (arrowsList);
@@ -471,6 +566,7 @@ int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsLis
 		{
             if (colliderZombieVsArrow(collidedZombie, collidedArrow))
             {
+                coinsList->addZombieDrop(collidedZombie);
                 arrowsList->deleteElement(collidedArrow);
                 zombieList->deleteElement(collidedZombie);
                 nCollisions++;
@@ -485,58 +581,34 @@ int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsLis
 	return nCollisions;
 }
 
-//===============COINS===========================================================
+//-------------------------------------------------------------------------------------------------------------------------
 
-coin::coin () : gameObject(sf::Vector2f(0, 0), sf::Vector2f(0, 0))
+//returns number of collected coins
+int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList)
 {
-    value = 0;
+	int nCollectedCoins = 0;
 
-	shape = sf::CircleShape(100.f);
-    shape.setFillColor(sf::Color::Red);  //If something red is drawn it is a mistake
-    shape.setRadius(COIN_RADIUS);
+	int xLine = collector->pos.x / WINDOW_LENGHT * coinsList->nLinesX;
+	int yLine = collector->pos.y / WINDOW_HEIGHT * coinsList->nLinesY;
 
-    printf ("I have created an empty coin\n");
-}
+    int listIndex = yLine * coinsList->nLinesX + xLine;
 
-//------------------------------------------------------------------------------------------------------
+    coin* collidedCoin = NULL;
+	if (coinsList->headsMassive[listIndex] != 0)
+	{
+        collidedCoin = coinsList->headsMassive[listIndex];
+        while (collidedCoin != NULL)
+        {
+            if (colliderPlayerVsCoin(collector, collidedCoin))
+            {
+                coinsList->deleteElement(collidedCoin);
+                nCollectedCoins++;
+			}
+            collidedCoin = collidedCoin->next;
+        }
+	}
 
-coin::coin(sf::Vector2f position, int coinValue) : gameObject (position, sf::Vector2f(0, 0))
-{
-	value = coinValue;
-
-	shape = sf::CircleShape(100.f);
-    shape.setFillColor(sf::Color::Yellow);
-    shape.setRadius(COIN_RADIUS);
-    shape.setOrigin(COIN_RADIUS, COIN_RADIUS);
-
-    ("I have created a coin\n");
-}
-
-//-----------------------------------------------------------------------------------------------
-
-coin& coin::operator= (const coin& right)
-{
-	printf ("I am using operator = of a coin\n");
-    if (this == &right)
-    	return *this;
-
-    value = right.value;
-    shape = right.shape;
-
-    pos = right.pos;
-    v = right.v;
-
-    return *this;
-}
-
-//------------------------------------------------------------------------------------------------------
-
-int coin::draw ()
-{
-	shape.setPosition(pos);
-    window->draw(shape);
-
-	return 0;
+	return nCollectedCoins;
 }
 
 

@@ -1,9 +1,9 @@
 
-
-
 template <class gObject>
 class coordinateList_T
 {
+    friend int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
+
     private:
         int nLinesX;
         int nLinesY;
@@ -14,8 +14,8 @@ class coordinateList_T
         gObject* freeHead;
         gObject* freeTail;
 
-        gObject*** headsMassive;
-        gObject*** tailsMassive;
+        gObject** headsMassive;
+        gObject** tailsMassive;
 
         gObject* elementsMassive;
 
@@ -29,9 +29,14 @@ class coordinateList_T
 		//----Removing&drawing
 		int draw();
 
-		//----Dunping functions
+		//----Dumping functions
         int dump();
         int calculateNElements();
+        int dumpHeadsAndTails ();
+
+        //----For coins
+        int addZombieDrop(zombie* killedZombie);
+        //int playerCollectsCoins1x1 (player* collector);
 };
 
 //---------------------------------------------------------------------------------------------------------------
@@ -61,16 +66,16 @@ coordinateList_T<gObject>::coordinateList_T (int maxElementsNumber, int linesNum
         elemPtr = elemPtr->next;
     }
 
-    printf ("---1---\n");
+    //printf ("---1---\n");
     //headsMassive = new gObject** [linesNumberX * linesNumberY];
     //tailsMassive = new gObject** [linesNumberX * linesNumberY];
 
-    headsMassive = static_cast<gObject***> (calloc (linesNumberX * linesNumberY, sizeof(gObject*)));
+    headsMassive = static_cast<gObject**> (calloc (linesNumberX * linesNumberY, sizeof(gObject*)));
     assert (headsMassive);
-    tailsMassive = static_cast<gObject***> (calloc (linesNumberX * linesNumberY, sizeof(gObject*)));
+    tailsMassive = static_cast<gObject**> (calloc (linesNumberX * linesNumberY, sizeof(gObject*)));
 	assert (tailsMassive);
 
-	printf ("--2--\n");
+	//printf ("--2--\n");
 	/*
     for (int i = 0; i < linesNumberX; i++)
 		for (int j = 0; j < linesNumberY; j++)
@@ -102,18 +107,27 @@ gObject* coordinateList_T<gObject>::addElement (gObject newElement)
 {
     printf ("I have started  adding an element into coordinate list\n");
 
+    printf ("coin X = %lg, coin Y = %lg\n", newElement.pos.x, newElement.pos.y);
+
     int xList = newElement.pos.x / WINDOW_LENGHT * nLinesX;
     int yList = newElement.pos.y / WINDOW_HEIGHT * nLinesY;
 
-    this->dump();
+    int elemIndex = nLinesX * yList + xList;
 
     printf ("xList = %d, yList = %d\n", xList, yList);
-    printf ("head[x][y] = %p\ntail[x][y] = %p\n", headsMassive[xList][yList], tailsMassive[xList][yList]);
+    printf ("head[x][y] = %p\ntail[x][y] = %p\n", headsMassive[elemIndex], tailsMassive[elemIndex]);
 
-    if (headsMassive[xList][yList] == NULL)
+    //this->dump();
+
+    if ((nElements != maxElements) && (headsMassive[elemIndex] == NULL))
     {
     	printf ("case nElements == 0\n");
-        assert (tailsMassive[xList][yList] == NULL);
+        assert (tailsMassive[elemIndex] == NULL);
+
+    	this->dump();
+    	this->dumpHeadsAndTails();
+
+        assert (tailsMassive[elemIndex] == NULL);
 
         nElements++;
 
@@ -124,17 +138,20 @@ gObject* coordinateList_T<gObject>::addElement (gObject newElement)
 
         *emptySpace = newElement;
 
-        emptySpace->next = tailsMassive[xList][yList]; // = NULL
-        emptySpace->prev = headsMassive[xList][yList]; // = NULL
+        emptySpace->next = tailsMassive[elemIndex]; // = NULL
+        emptySpace->prev = headsMassive[elemIndex]; // = NULL
 
-        headsMassive[xList][yList] = emptySpace;
-        tailsMassive[xList][yList] = emptySpace;
+        headsMassive[elemIndex] = emptySpace;
+        tailsMassive[elemIndex] = emptySpace;
 
         printf ("I have finished adding an element into coordinate list\n");
         return emptySpace;
     }
-    else if ((nElements > 0) && (nElements < maxElements))
+    //else if ((nElements > 0) && (nElements < maxElements))
+    else if ((nElements != maxElements) && (headsMassive[elemIndex] != NULL))
     {
+        assert (tailsMassive[elemIndex] != NULL);
+
 		printf ("case 0 < nElements < max\n");
         nElements++;
 
@@ -156,11 +173,11 @@ gObject* coordinateList_T<gObject>::addElement (gObject newElement)
 
         *emptySpace = newElement;
 
-        assert (headsMassive[xList][yList]->prev == NULL);
+        assert (headsMassive[elemIndex]->prev == NULL);
 
-        headsMassive[xList][yList]->prev = emptySpace;
-        emptySpace->next = headsMassive[xList][yList];
-        headsMassive[xList][yList] = emptySpace;
+        headsMassive[elemIndex]->prev = emptySpace;
+        emptySpace->next = headsMassive[elemIndex];
+        headsMassive[elemIndex] = emptySpace;
 
         printf ("I have finished adding an element into coordinate list\n");
         return emptySpace;
@@ -195,8 +212,10 @@ int coordinateList_T<gObject>::deleteElement(gObject* deletedElement)
     assert (nElements <= maxElements);
     assert ((deletedElement >= &elementsMassive[0]) && (deletedElement <= &elementsMassive[maxElements]));
 
-    int xList = deletedElement.pos.x / WINDOW_LENGHT * nLinesX;
-    int yList = deletedElement.pos.y / WINDOW_HEIGHT * nLinesY;
+    int xList = deletedElement->pos.x / WINDOW_LENGHT * nLinesX;
+    int yList = deletedElement->pos.y / WINDOW_HEIGHT * nLinesY;
+
+    int elemIndex = nLinesX * yList + xList;
 
     if      ((deletedElement->next != NULL) && (deletedElement->prev != NULL))
     {
@@ -210,21 +229,21 @@ int coordinateList_T<gObject>::deleteElement(gObject* deletedElement)
     	nElements--;
 
         deletedElement->prev->next = NULL;
-        tailsMassive[xList][yList] = deletedElement->prev;
+        tailsMassive[elemIndex] = deletedElement->prev;
     }
     else if ((deletedElement->next != NULL) && (deletedElement->prev == NULL))
     {
     	nElements--;
 
         deletedElement->next->prev = NULL;
-        headsMassive[xList][yList] = deletedElement->next;
+        headsMassive[elemIndex] = deletedElement->next;
     }
     else if ((deletedElement->next == NULL) && (deletedElement->prev == NULL))
     {
     	nElements--;
 
-        headsMassive[xList][yList] = deletedElement->next;
-        tailsMassive[xList][yList] = deletedElement->prev;
+        headsMassive[elemIndex] = deletedElement->next;
+        tailsMassive[elemIndex] = deletedElement->prev;
 	}
 	else
 	{
@@ -275,23 +294,24 @@ int coordinateList_T<gObject>::draw()
 	printf ("nLinesX = %d, nLinesY = %d nElements = %d\n", nLinesX, nLinesY, nElements);
 
 
+
 	if (nElements > 0)
 	{
-		for (int i = 0; i < nLinesX; i++)
-			for (int j = 0; j < nLinesY; j++)
+		for (int elemIndex = 0; elemIndex < nLinesX * nLinesY; elemIndex++)
+		{
+			//elemIndex = j * nLinesX + i;
+			printf ("elemIndex = %d\n", elemIndex);
+			if (headsMassive[elemIndex] != NULL)
 			{
-				printf ("---1---\n");
-				if (headsMassive[i][j] != NULL)
+				assert (tailsMassive[elemIndex] != NULL);
+				gObject* drawnElement = headsMassive[elemIndex];
+				while (drawnElement != NULL)
 				{
-					assert (tailsMassive[i][j] != NULL);
-					gObject* drawnElement = headsMassive[i][j];
-					while (drawnElement != NULL)
-					{
-						drawnElement->draw ();
-						drawnElement = drawnElement->next;
-					}
+					drawnElement->draw ();
+					drawnElement = drawnElement->next;
 				}
 			}
+		}
 	}
 	printf ("I have finished drawing elements of coordinatelist\n");
 	return 0;
@@ -336,37 +356,80 @@ int coordinateList_T<gObject>::calculateNElements ()
 
     printf ("free Elements number = %d\n", nElems);
 
-    for (int i = 0; i < nLinesX; i++)
-		for (int j = 0; j < nLinesY; j++)
+	for (int elemIndex = 0; elemIndex < nLinesX * nLinesY; elemIndex++)
+	{
+		//printf ("i = %d  j = %d\n", i, j);
+		//elemIndex = j * nLinesX + i;
+		printf ("elemIndex = %d\n", elemIndex);
+
+		if (headsMassive[elemIndex] != NULL)
 		{
-            printf ("i = %d  j = %d\n", i, j);
-            printf ("sho blin za hren\n");
-
-			printf ("headsMassive[%d][%d]", i, j);
-			printf (" = %p\n", headsMassive[i][j]);
-			if (headsMassive[i][j] != NULL)
+			checkedElement = headsMassive[elemIndex];
+			while (checkedElement != NULL)
 			{
-                checkedElement = headsMassive[i][j];
-                while (checkedElement != NULL)
-                {
-                    nElems++;
-                    checkedElement = checkedElement->next;
-                }
+				nElems++;
+				checkedElement = checkedElement->next;
 			}
-			else
-				assert (tailsMassive[i][j] == NULL);
 		}
-
-
-
+		else
+			assert (tailsMassive[elemIndex] == NULL);
+	}
 	return nElems;
 }
 
+//-------------------------------------------------------------------------------------------------------------------
 
+template <class gObject>
+int coordinateList_T<gObject>::dumpHeadsAndTails ()
+{
+    printf ("--HEADS & TAILS :\n");
+    for (int i = 0; i < nLinesX * nLinesY; i++)
+    {
+    	printf ("Index = %d\n", i);
+		printf ("headPtr = %p\n", headsMassive[i]);
+		printf ("tailPtr = %p\n", tailsMassive[i]);
+        if (headsMassive[i] != NULL)
+        {
+            assert (tailsMassive[i] != NULL);
 
+            int nElems = 0;
+            gObject* printedObject = headsMassive[i];
 
+            while (printedObject != NULL)
+            {
+            	printf ("\tNo = %d\n", nElems);
+                printf ("\tprev = %p\n", printedObject->prev);
+                printf ("\tthis = %p\n", printedObject);
+                printf ("\tnext = %p\n", printedObject->next);
+                nElems++;
+                printedObject = printedObject->next;
+            }
+		printf ("nElements = %d\n", nElems);
+        }
+	printf ("\\\\\\\\\n");
+	}
 
+	return 0;
+}
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------
+
+template<>
+int coordinateList_T<coin>::addZombieDrop (zombie* killedZombie)
+{
+    printf ("I am making zombie drop\n");
+
+    this->addElement(coin (killedZombie->getPosition(), COIN_VALUE, COIN_RADIUS));
+
+	printf ("I am making zombie drop\n");
+    return 0;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------
+
+//returns N collected coins
+//template<>
+//int coordinateList_T<coin>::playerCollectsCoins1x1 (player* collector)
 
 
 

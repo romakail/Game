@@ -19,9 +19,10 @@ const float ZOMBIE_RADIUS = 50;
 const int MAX_ZOMBIES = 35;
 
 const float COIN_RADIUS = 5;
-const int MAX_COINS = 30;
-const int COIN_LINES_IN_LIST_X = 10;
-const int COIN_LINES_IN_LIST_Y = 10;
+const int MAX_COINS = 100;
+const int COIN_VALUE = 5;
+const int COIN_LINES_IN_LIST_X = 3;
+const int COIN_LINES_IN_LIST_Y = 3;
 
 const double SQRT2 = sqrt (0.5);
 const float DEGREES_IN_RADIAN = 57.2956;
@@ -35,6 +36,7 @@ class gameObject;
 class player;
 class arrow;
 class zombie;
+class coin;
 class arrows_list;
 
 template <class gObject>
@@ -65,7 +67,7 @@ class arrow : public gameObject
     friend class list_T<arrow>;
 
 	friend bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow);
-	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList);
+	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList);
 
     private:
         float Vmax;
@@ -89,6 +91,11 @@ class arrow : public gameObject
 
 class player : public gameObject
 {
+	friend bool colliderPlayerVsCoin (player* Player, coin* Coin);
+	friend int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
+
+	//friend int coordinateList_T<coin>::playerCollectsCoins1x1 (player* collector);
+
     private:
         float Vmax;
         float radius;
@@ -107,7 +114,7 @@ class zombie : public gameObject
 	friend class list_T<zombie>;
 
 	friend bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow);
-	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList);
+	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList);
 
     private:
     	float Vmax;
@@ -123,6 +130,8 @@ class zombie : public gameObject
         zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius);
         zombie& operator= (const zombie& right);
 
+        sf::Vector2f getPosition ();
+
         int draw();
 };
 
@@ -130,8 +139,12 @@ class coin : public gameObject
 {
 	friend class coordinateList_T<coin>;
 
+	friend bool colliderPlayerVsCoin (player* Player, coin* Coin);
+	friend int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
+
     private:
         int value;
+        float radius;
         sf::CircleShape shape;
 
     protected:
@@ -140,7 +153,7 @@ class coin : public gameObject
 
     public:
         coin ();
-        coin (sf::Vector2f position, int value);
+        coin (sf::Vector2f position, int value, float coinRadius);
         coin& operator= (const coin& right);
 
         int draw ();
@@ -153,7 +166,8 @@ class coin : public gameObject
 zombie createZombie ();
 int game ();
 int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter);
-int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList);
+int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList);
+int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
 
 
 

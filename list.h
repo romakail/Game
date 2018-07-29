@@ -4,7 +4,7 @@
 template <class gObject>
 class list_T
 {
-	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList);
+	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList);
 
 	private:
 		int maxElements;
@@ -18,7 +18,7 @@ class list_T
 
     public:
     	//Fundamental functions
-        list_T (int maxElementsNumber);
+        explicit list_T (int maxElementsNumber);
         ~list_T ();
         gObject* addElement (gObject newElement);
         int deleteElement (gObject* deletedElement);
