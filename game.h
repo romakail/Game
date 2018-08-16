@@ -4,6 +4,9 @@
 #include <math.h>
 #include <assert.h>
 
+#define ANSI_COLOR_RED   "\x1b[31m"
+#define ANSI_COLOR_RESET "\x1b[0m"
+
 
 const int WINDOW_HEIGHT = 900;
 const int WINDOW_LENGHT = 900;
@@ -29,8 +32,11 @@ const float DEGREES_IN_RADIAN = 57.2956;
 const float PI = 3.1416;
 const float EXTENDED_ANGLE = 180;
 
+
+
 sf::RenderWindow* window = nullptr;
 
+//Classes
 
 class gameObject;
 class player;
@@ -38,12 +44,40 @@ class arrow;
 class zombie;
 class coin;
 class arrows_list;
+class castle;
 
 template <class gObject>
 class list_T;
 
 template <class gObject>
 class coordinateList_T;
+
+//=========Functions================
+
+//Usual
+zombie createZombie ();
+int game ();
+int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter);
+
+//Colliders
+bool colliderZombieVsArrow (zombie* Zombie, arrow* Arrow);
+bool colliderPlayerVsCoin (player* Player, coin* Coin);
+bool colliderPlayerVsCastle (player* Player, castle* Castle);
+bool colliderCircleVsLine (sf::Vector2f centre, float radius, sf::Vector2f dot1, sf::Vector2f dot2);
+bool colliderCircleVsDot (sf::Vector2f centre, float radius, sf::Vector2f dot);
+
+//Managers
+int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList);
+int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
+
+
+
+
+
+
+
+
+
 
 class gameObject
 {
@@ -93,6 +127,7 @@ class player : public gameObject
 {
 	friend bool colliderPlayerVsCoin (player* Player, coin* Coin);
 	friend int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
+	friend bool colliderPlayerVsCastle (player* Player, castle* Castle);
 
 	//friend int coordinateList_T<coin>::playerCollectsCoins1x1 (player* collector);
 
@@ -159,18 +194,31 @@ class coin : public gameObject
         int draw ();
 };
 
+//------------------------------------------------------------------------
+
+class castle
+{
+    friend bool colliderPlayerVsCastle (player* Player, castle* Castle);
+
+    private:
+        int nAngles;
+        sf::Vector2f* anglesMassive;
+		//sf::RectangleShape* shapesMassive;
+        sf::ConvexShape walls;
+
+    public:
+        castle (int anglesNumber, sf::Vector2f* anglesCoordinates);
+        ~castle ();
+
+        int draw ();
+};
+
+
+
+
+
 #include "list.h"
 #include "coordinateList.h"
-
-
-zombie createZombie ();
-int game ();
-int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter);
-int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList);
-int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
-
-
-
 
 
 

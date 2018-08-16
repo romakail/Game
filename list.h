@@ -140,8 +140,10 @@ gObject* list_T<gObject>::addElement (gObject newElement)
         return 0;
     }
     else
+    {
+    	printf ("nElements = %d\n", nElements);
     	assert (0);
-
+	}
     //this->dumpAllArrows();
     //this->dump();
 
@@ -153,9 +155,10 @@ gObject* list_T<gObject>::addElement (gObject newElement)
 template <class gObject>
 int list_T<gObject>::deleteElement (gObject* deletedElement)
 {
-	//printf ("I have started deleting a certain gObject from a list\n");
+	printf ("I have started deleting a certain gObject from a list\n");
     assert (deletedElement);
-    assert (nElements > 0);
+    printf ("nElements = %d\n", nElements);
+    //assert (nElements > 0);
     assert ((deletedElement >= &elementsMassive[0]) && (deletedElement <= &elementsMassive[maxElements]));
 
     if      ((deletedElement->next != NULL) && (deletedElement->prev != NULL))

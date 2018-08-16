@@ -28,7 +28,17 @@ int game()
 
     //
 	coordinateList_T<coin> coinsList (MAX_COINS, COIN_LINES_IN_LIST_X, COIN_LINES_IN_LIST_Y);
+    //
 
+    //
+    sf::Vector2f Vectors [6] = {sf::Vector2f (100, 50),
+    							sf::Vector2f (700, 50),
+    							sf::Vector2f (700, 500),
+    							sf::Vector2f (400, 700),
+    							sf::Vector2f (100, 500),
+    							sf::Vector2f (100, 50)	};
+
+	castle ziggurat (5, Vectors);
     //
 
     while (window->isOpen())
@@ -78,8 +88,10 @@ int game()
             coinsList.addElement(coin(sf::Vector2f(sf::Mouse::getPosition(*window).x, sf::Mouse::getPosition(*window).y), COIN_VALUE, COIN_RADIUS));
         }
         managerPlayerVsCoins(&mainCharacter, &coinsList);
+		//
 
-
+        //if (colliderPlayerVsCastle(&mainCharacter, &ziggurat))
+        //    printf ( ANSI_COLOR_RED "Player and Castle collided" ANSI_COLOR_RESET "\n");
         //----drawing functions
 
         window->draw(backGround);
@@ -94,6 +106,8 @@ int game()
 		printf ("before staring drawing coins\n");
 		coinsList.draw();
         //--------------------
+
+        ziggurat.draw();
 
         //arrowsList.dump();
         printf ("//---------------------------------------//\n");
@@ -505,6 +519,70 @@ int coin::draw ()
 	return 0;
 }
 
+//============CASTLE================================================================================
+
+//castle        (int anglesNumber, sf::Vector2f* anglesCoordinates);
+castle::castle(int anglesNumber, sf::Vector2f* anglesCoordinates)
+{
+    assert (anglesNumber >= 3);
+    assert (anglesCoordinates[0] == anglesCoordinates[anglesNumber]);
+
+    nAngles = anglesNumber;
+
+    void* rawMemory = operator new[] ((nAngles + 1) * sizeof(sf::Vector2f));//sf::Vector2f [nAngles + 1];
+    anglesMassive = static_cast<sf::Vector2f*> (rawMemory);
+
+    for (int i = 0; i < nAngles + 1; i++)
+    {
+        //anglesMassive[i] = anglesCoordinates[i]
+        new (&(anglesMassive [i])) sf::Vector2f(anglesCoordinates [i]);
+	}
+    assert (anglesMassive[0] == anglesMassive[nAngles]);
+
+    //shapesMassive = NULL;
+	/*
+    void* rawMemory = operator new [] (nAngles * sizeof(sf::RectangleShape));
+    shapesMassive = static_cast<sf::RectangleShape*> (rawMemory);
+
+    for (int i = 0; i < nAngles; i++)
+    {
+        new (&(shapesMassive [i])) sf::RectangleShape()
+    }
+	*/
+
+    walls.setPointCount(nAngles);
+    walls.setOutlineColor(sf::Color::Black);
+    walls.setOutlineThickness(5.0);
+    walls.setFillColor(sf::Color::Transparent);
+
+    for (int i = 0; i < nAngles; i++)
+    {
+        walls.setPoint(i, anglesCoordinates[i]);
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------------------------
+
+castle::~castle()
+{
+	/*
+    for (int i = nAngles; i >= 0; --i)
+    {
+        anglesMassive[i].sf::~Vector2f();
+    }
+    */
+    operator delete [] (anglesMassive);
+}
+
+//-----------------------------------------------------------------------------------------------------------------------
+
+int castle::draw ()
+{
+	window->draw (walls);
+	return 0;
+}
+
+
 //============COLLIDERЫ=============================================================================
 // 1 (true)  - collided
 // 0 (false) - not collided
@@ -542,6 +620,60 @@ bool colliderPlayerVsCoin (player* Player, coin* Coin)
 
 	assert (0);
 	return 0;
+}
+
+//---------------------------------------------------------------------------------------------------------------
+
+bool colliderPlayerVsCastle (player* Player, castle* Castle)
+{
+    assert (Player);
+    assert (Castle);
+    assert (Player->radius > 0);
+
+    for (int i = 0; i < Castle->nAngles; i++)
+    {
+        if ((colliderCircleVsDot (Player->pos, Player->radius, Castle->anglesMassive[i])) ||
+			(colliderCircleVsLine(Player->pos, Player->radius, Castle->anglesMassive[i], Castle->anglesMassive[i + 1])))
+            return 1;
+    }
+    return 0;
+}
+
+//----------------------------------------------------------------------------------------------------------------
+
+bool colliderCircleVsLine (sf::Vector2f centre, float radius, sf::Vector2f dot1, sf::Vector2f dot2)
+{
+    assert (radius > 0);
+    assert (dot1 != dot2);
+
+    float lenght = sqrt ( (dot1.x - dot2.x) * (dot1.x - dot2.x) + (dot1.y - dot2.y) * (dot1.y - dot2.y) );
+
+	sf::Vector2f newAbscissa = dot2 - dot1;
+    sf::Vector2f newCentre = centre - dot1;
+
+    float cosA = newAbscissa.x / lenght;
+    float sinA = newAbscissa.y / lenght;
+
+    sf::Vector2f newnewCentre (newCentre.x * cosA + newCentre.y * sinA, -newCentre.x * sinA + newCentre.y * cosA);
+
+    if ((newnewCentre.x > 0) &&
+    	(newnewCentre.x < lenght) &&
+    	(newnewCentre.y < radius) &&
+    	(newnewCentre.y > -radius) )
+			return 1;
+	else
+			return 0;
+}
+
+//----------------------------------------------------------------------------------------------------------------
+
+bool colliderCircleVsDot (sf::Vector2f centre, float radius, sf::Vector2f dot)
+{
+    assert (radius > 0);
+    if (((centre.x - dot.x) * (centre.x - dot.x) + (centre.y - dot.y) * (centre.y - dot.y)) < radius * radius)
+    	return 1;
+	else
+        return 0;
 }
 
 //================MANAGMENT======================================================================================
@@ -610,6 +742,7 @@ int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList)
 
 	return nCollectedCoins;
 }
+
 
 
 
