@@ -74,7 +74,8 @@ list_T<gObject>::~list_T ()
 template <class gObject>
 gObject* list_T<gObject>::addElement (gObject newElement)
 {
-    //printf ("I have started adding an element\n");
+    printf ("I have started adding an element\n");
+    assert (nElements >= 0);
 
     if (nElements == 0)
     {
@@ -224,6 +225,7 @@ int list_T<gObject>::deleteElement (gObject* deletedElement)
 		printf ("whaaaaat?\n");
 	}
 
+	printf ("in the end of delete nElements = %d\n", nElements);
 	//printf ("I have finished deleting a cerain gObject\n");
 	return 0;
 }

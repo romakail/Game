@@ -3,6 +3,7 @@ template <class gObject>
 class coordinateList_T
 {
     friend int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
+    friend int collectCoins1x1 (player* collector, coordinateList_T<coin>* coinsList, int listIndex);
 
     private:
         int nLinesX;
@@ -300,7 +301,7 @@ int coordinateList_T<gObject>::draw()
 		for (int elemIndex = 0; elemIndex < nLinesX * nLinesY; elemIndex++)
 		{
 			//elemIndex = j * nLinesX + i;
-			printf ("elemIndex = %d\n", elemIndex);
+			//printf ("elemIndex = %d\n", elemIndex);
 			if (headsMassive[elemIndex] != NULL)
 			{
 				assert (tailsMassive[elemIndex] != NULL);

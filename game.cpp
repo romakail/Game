@@ -91,7 +91,7 @@ int game()
 		//
 
         //if (colliderPlayerVsCastle(&mainCharacter, &ziggurat))
-        //    printf ( ANSI_COLOR_RED "Player and Castle collided" ANSI_COLOR_RESET "\n");
+		//	printf (ANSI_COLOR_RED "Player and Castle collided" ANSI_COLOR_RESET "\n");
         //----drawing functions
 
         window->draw(backGround);
@@ -103,7 +103,7 @@ int game()
         //
 		zombieList.draw();
 
-		printf ("before staring drawing coins\n");
+		//printf ("before staring drawing coins\n");
 		coinsList.draw();
         //--------------------
 
@@ -138,16 +138,30 @@ int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter)
     isLeftPressedNow = sf::Mouse::isButtonPressed(sf::Mouse::Left);
 
 	arrowsList->moveAllElements();
-
+/*
 	if (isLeftPressedNow)
 	{
-		if (prevArrowPtr != NULL)
-			if (isLeftPressedPrev)
-				arrowsList->deleteElement(prevArrowPtr);
+		if (isLeftPressedPrev)
+			arrowsList->deleteElement(prevArrowPtr);
 
 		arrow shootedArrow = mainCharacter->shoot(ARROW_SPEED);
 		prevArrowPtr = arrowsList->addElement(shootedArrow);
 	}
+*/
+
+	if (isLeftPressedNow)
+	{
+        if (isLeftPressedPrev)
+        {
+			*prevArrowPtr = mainCharacter->shoot(ARROW_SPEED);
+        }
+        else
+        {
+			arrow shootedArrow = mainCharacter->shoot(ARROW_SPEED);
+			prevArrowPtr = arrowsList->addElement(shootedArrow);
+        }
+	}
+
 
 //	for shooting when left button is pressed
 /*
@@ -365,7 +379,7 @@ arrow& arrow::operator= (const arrow& right)
     pos = right.pos;
     v = right.v;
 
-    this->draw();
+    //this->draw();
 
 	return *this;
 }
@@ -725,7 +739,105 @@ int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList)
 
     int listIndex = yLine * coinsList->nLinesX + xLine;
 
-    coin* collidedCoin = NULL;
+	if		(listIndex % coinsList->nLinesX == 0)
+	{
+        if (listIndex == 0)
+        {
+            nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+            nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + 1);
+            nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX);
+            nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX + 1);
+        }
+        else if (listIndex == coinsList->nLinesX * (coinsList->nLinesY - 1))
+        {
+        	nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX + 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + 1);
+        }
+        else
+        {
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX + 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX);
+            nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX + 1);
+        }
+	}
+	else if ((listIndex + 1) % coinsList->nLinesX == 0)
+	{
+        if		(listIndex == coinsList->nLinesX - 1)
+        {
+        	nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX);
+        }
+        else if (listIndex == coinsList->nLinesX * coinsList->nLinesY - 1)
+        {
+        	nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX - 1);
+        	nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+        }
+        else
+        {
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX - 1);
+        	nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+        	nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX);
+        }
+	}
+	else
+	{
+		if		((listIndex > 0) && (listIndex < coinsList->nLinesX - 1))
+		{
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX + 1);
+		}
+		else if ((listIndex > coinsList->nLinesX * (coinsList->nLinesY - 1)) && (listIndex < coinsList->nLinesX * coinsList->nLinesY - 1))
+		{
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX + 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + 1);
+		}
+		else
+		{
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - coinsList->nLinesX + 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX - 1);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX);
+			nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex + coinsList->nLinesX + 1);
+		}
+	}
+
+    nCollectedCoins += collectCoins1x1(collector, coinsList, listIndex);
+
+	printf ("Collected coins = %d\n", nCollectedCoins);
+	return nCollectedCoins;
+}
+
+//----------------------------------------------------------------------------------------------
+
+int collectCoins1x1 (player* collector, coordinateList_T<coin>* coinsList, int listIndex)
+{
+	int nCollectedCoins = 0;
+	coin* collidedCoin = NULL;
+
 	if (coinsList->headsMassive[listIndex] != 0)
 	{
         collidedCoin = coinsList->headsMassive[listIndex];
@@ -740,6 +852,7 @@ int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList)
         }
 	}
 
+	printf ("Collected coins = %d\n", nCollectedCoins);
 	return nCollectedCoins;
 }
 
@@ -767,6 +880,43 @@ int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList)
 
 
 
+
+
+
+
+/*
+int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter)
+{
+    static int isLeftPressedPrev = 0;
+    static int isLeftPressedNow = 0;
+    static arrow* prevArrowPtr = NULL;
+
+    isLeftPressedNow = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+
+	arrowsList->moveAllElements();
+
+	if (isLeftPressedNow)
+	{
+		if (isLeftPressedPrev)
+			arrowsList->deleteElement(prevArrowPtr);
+
+		arrow shootedArrow = mainCharacter->shoot(ARROW_SPEED);
+		prevArrowPtr = arrowsList->addElement(shootedArrow);
+	}
+
+//	for shooting when left button is pressed
+
+//	if (isLeftPressedNow)
+//		arrowsList->addElement(mainCharacter->shoot(ARROW_SPEED));
+
+
+	arrowsList->deleteUnnecessaryArrows();
+
+    isLeftPressedPrev = isLeftPressedNow;
+
+	return 0;
+}
+*/
 
 
 

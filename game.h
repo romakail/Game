@@ -8,8 +8,8 @@
 #define ANSI_COLOR_RESET "\x1b[0m"
 
 
-const int WINDOW_HEIGHT = 900;
-const int WINDOW_LENGHT = 900;
+const int WINDOW_HEIGHT = 1100;
+const int WINDOW_LENGHT = 1100;
 
 const float MAIN_CHARACTER_SPEED = 10;
 const float MAIN_CHARACTER_RADIUS = 75;
@@ -22,10 +22,10 @@ const float ZOMBIE_RADIUS = 50;
 const int MAX_ZOMBIES = 35;
 
 const float COIN_RADIUS = 5;
-const int MAX_COINS = 100;
+const int MAX_COINS = 200;
 const int COIN_VALUE = 5;
-const int COIN_LINES_IN_LIST_X = 3;
-const int COIN_LINES_IN_LIST_Y = 3;
+const int COIN_LINES_IN_LIST_X = 10;
+const int COIN_LINES_IN_LIST_Y = 10;
 
 const double SQRT2 = sqrt (0.5);
 const float DEGREES_IN_RADIAN = 57.2956;
@@ -69,13 +69,7 @@ bool colliderCircleVsDot (sf::Vector2f centre, float radius, sf::Vector2f dot);
 //Managers
 int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList);
 int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
-
-
-
-
-
-
-
+int collectCoins1x1 (player* collector, coordinateList_T<coin>* coinsList, int listIndex);
 
 
 
@@ -176,6 +170,7 @@ class coin : public gameObject
 
 	friend bool colliderPlayerVsCoin (player* Player, coin* Coin);
 	friend int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
+	friend int collectCoins1x1 (player* collector, coordinateList_T<coin>* coinsList, int listIndex);
 
     private:
         int value;
