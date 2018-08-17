@@ -12,7 +12,7 @@ const int WINDOW_HEIGHT = 1100;
 const int WINDOW_LENGHT = 1100;
 
 const float MAIN_CHARACTER_SPEED = 10;
-const float MAIN_CHARACTER_RADIUS = 75;
+const float MAIN_CHARACTER_RADIUS = 45;
 
 const float ARROW_SPEED = 20;
 const int MAX_ARROWS = 35;
@@ -26,6 +26,10 @@ const int MAX_COINS = 200;
 const int COIN_VALUE = 5;
 const int COIN_LINES_IN_LIST_X = 10;
 const int COIN_LINES_IN_LIST_Y = 10;
+
+const float WALL_WIDTH = 30;
+const int DOOR_HITPOINTS = 100;
+const float EDGE_WIDTH = 30;
 
 const double SQRT2 = sqrt (0.5);
 const float DEGREES_IN_RADIAN = 57.2956;
@@ -189,6 +193,29 @@ class coin : public gameObject
         int draw ();
 };
 
+//-----------------------------------------------------------------------------------------
+
+class wall
+{
+
+    private:
+        sf::Vector2f end1;
+        sf::Vector2f end2;
+        bool isDoor;
+        float width;
+        int hp;
+        float lenght;
+        sf::RectangleShape shape;
+        sf::CircleShape    edge;
+
+    public:
+        wall (sf::Vector2f End1, sf::Vector2f End2, bool IsDoor, float Width, int hitPoints);
+        ~wall ();
+        int draw ();
+
+
+};
+
 //------------------------------------------------------------------------
 
 class castle
@@ -199,10 +226,12 @@ class castle
         int nAngles;
         sf::Vector2f* anglesMassive;
 		//sf::RectangleShape* shapesMassive;
-        sf::ConvexShape walls;
+        //sf::ConvexShape walls;
+
+        wall* walls;
 
     public:
-        castle (int anglesNumber, sf::Vector2f* anglesCoordinates);
+        castle (int anglesNumber, sf::Vector2f* anglesCoordinates, bool* isDoors);
         ~castle ();
 
         int draw ();

@@ -38,7 +38,9 @@ int game()
     							sf::Vector2f (100, 500),
     							sf::Vector2f (100, 50)	};
 
-	castle ziggurat (5, Vectors);
+	bool isDoorMassive [5] = {1, 0, 1, 0, 1};
+
+	castle ziggurat (5, Vectors, isDoorMassive);
     //
 
     while (window->isOpen())
@@ -535,8 +537,67 @@ int coin::draw ()
 
 //============CASTLE================================================================================
 
+//----------walls-----------------------------------------------------------------------------------
+
+wall::wall (sf::Vector2f End1, sf::Vector2f End2, bool IsDoor, float Width, int hitPoints)
+{
+	printf ("I am constructing a wall\n");
+    assert (Width > 0);
+
+    end1 = End1;
+    end2 = End2;
+    isDoor = IsDoor;
+	width = Width;
+	hp = hitPoints;
+
+    lenght = sqrt ((end1.x - end2.x) * (end1.x - end2.x) + (end1.y - end2.y) * (end1.y - end2.y));
+
+    shape = sf::RectangleShape(sf::Vector2f(lenght, width));
+    shape.setOrigin(sf::Vector2f(0, width/2));
+    shape.setPosition(end1);
+    if (isDoor)
+    	shape.setFillColor(sf::Color(139, 69, 19, 255));
+	else
+        shape.setFillColor(sf::Color::Black);
+
+    sf::Vector2f direction = end2 - end1;
+
+    float cos = direction.x/lenght;
+    float sin = direction.y/lenght;
+
+    if (cos > 0)
+        shape.setRotation(asin(sin) * DEGREES_IN_RADIAN);
+    else
+        shape.setRotation(EXTENDED_ANGLE - asin(sin) * DEGREES_IN_RADIAN);
+
+
+	edge = sf::CircleShape(100.f);
+    edge.setFillColor(sf::Color::Black);
+    edge.setRadius(EDGE_WIDTH/2);
+    edge.setOrigin(EDGE_WIDTH/2, EDGE_WIDTH/2);
+    edge.setPosition(end1);
+}
+
+//------------------------------------------------------------------------------------------------------
+
+wall::~wall()
+{
+	printf ("I am destructing a wall");
+}
+
+//------------------------------------------------------------------------------------------------------
+
+int wall::draw ()
+{
+    window->draw(shape);
+	window->draw(edge);
+    return 0;
+}
+
+//---------------castle--------------------------------------------------------------------------------
+
 //castle        (int anglesNumber, sf::Vector2f* anglesCoordinates);
-castle::castle(int anglesNumber, sf::Vector2f* anglesCoordinates)
+castle::castle(int anglesNumber, sf::Vector2f* anglesCoordinates, bool* isDoors)
 {
     assert (anglesNumber >= 3);
     assert (anglesCoordinates[0] == anglesCoordinates[anglesNumber]);
@@ -563,8 +624,8 @@ castle::castle(int anglesNumber, sf::Vector2f* anglesCoordinates)
         new (&(shapesMassive [i])) sf::RectangleShape()
     }
 	*/
-
-    walls.setPointCount(nAngles);
+	/*
+	walls.setPointCount(nAngles);
     walls.setOutlineColor(sf::Color::Black);
     walls.setOutlineThickness(5.0);
     walls.setFillColor(sf::Color::Transparent);
@@ -573,6 +634,18 @@ castle::castle(int anglesNumber, sf::Vector2f* anglesCoordinates)
     {
         walls.setPoint(i, anglesCoordinates[i]);
     }
+    */
+
+    rawMemory = operator new[] ((nAngles) * sizeof(wall));
+	walls = static_cast<wall*> (rawMemory);
+
+	for (int i = 0; i < nAngles; i++)
+    {
+        //anglesMassive[i] = anglesCoordinates[i]
+        new (&(walls [i])) wall(anglesCoordinates [i], anglesCoordinates [i + 1], isDoors [i], WALL_WIDTH, DOOR_HITPOINTS);
+	}
+
+
 }
 
 //-----------------------------------------------------------------------------------------------------------------------
@@ -586,13 +659,21 @@ castle::~castle()
     }
     */
     operator delete [] (anglesMassive);
+
+    for (int i = nAngles; i >= 0; --i)
+    {
+        walls[i].~wall();
+    }
+    operator delete [] (walls);
 }
 
 //-----------------------------------------------------------------------------------------------------------------------
 
 int castle::draw ()
 {
-	window->draw (walls);
+	//window->draw (walls);
+    for (int i = 0; i < nAngles; i++)
+        walls[i].draw();
 	return 0;
 }
 
@@ -856,7 +937,7 @@ int collectCoins1x1 (player* collector, coordinateList_T<coin>* coinsList, int l
 	return nCollectedCoins;
 }
 
-
+//-------------------------------------------------------------------------------------------------------
 
 
 
