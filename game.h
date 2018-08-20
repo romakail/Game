@@ -8,8 +8,8 @@
 #define ANSI_COLOR_RESET "\x1b[0m"
 
 
-const int WINDOW_HEIGHT = 1100;
-const int WINDOW_LENGHT = 1100;
+const int WINDOW_HEIGHT = 1000;
+const int WINDOW_LENGHT = 1000;
 
 const float MAIN_CHARACTER_SPEED = 10;
 const float MAIN_CHARACTER_RADIUS = 45;
@@ -18,8 +18,9 @@ const float ARROW_SPEED = 20;
 const int MAX_ARROWS = 35;
 const float ARROW_LENGHT = 40;
 
-const float ZOMBIE_RADIUS = 50;
+const float ZOMBIE_RADIUS = 25;
 const int MAX_ZOMBIES = 35;
+const float ZOMBIE_SPEED = 5;
 
 const float COIN_RADIUS = 5;
 const int MAX_COINS = 200;
@@ -27,9 +28,9 @@ const int COIN_VALUE = 5;
 const int COIN_LINES_IN_LIST_X = 10;
 const int COIN_LINES_IN_LIST_Y = 10;
 
-const float WALL_WIDTH = 30;
+const float WALL_WIDTH = 20;
 const int DOOR_HITPOINTS = 100;
-const float EDGE_WIDTH = 30;
+const float EDGE_WIDTH = 20;
 
 const double SQRT2 = sqrt (0.5);
 const float DEGREES_IN_RADIAN = 57.2956;
@@ -67,6 +68,7 @@ int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter);
 bool colliderZombieVsArrow (zombie* Zombie, arrow* Arrow);
 bool colliderPlayerVsCoin (player* Player, coin* Coin);
 bool colliderPlayerVsCastle (player* Player, castle* Castle);
+bool colliderPlayerVsZombie (player* Player, zombie* Zombie);
 bool colliderCircleVsLine (sf::Vector2f centre, float radius, sf::Vector2f dot1, sf::Vector2f dot2);
 bool colliderCircleVsDot (sf::Vector2f centre, float radius, sf::Vector2f dot);
 
@@ -89,6 +91,7 @@ class gameObject
         gameObject (sf::Vector2f position, sf::Vector2f speed);
 
         int changePosition ();
+        sf::Vector2f getPosition ();
         virtual int draw () = 0;
 };
 
@@ -124,9 +127,11 @@ class arrow : public gameObject
 class player : public gameObject
 {
 	friend bool colliderPlayerVsCoin (player* Player, coin* Coin);
-	friend int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
 	friend bool colliderPlayerVsCastle (player* Player, castle* Castle);
+	friend bool colliderPlayerVsZombie (player* Player, zombie* Zombie);
+	friend int managerPlayerVsCoins (player* collector, coordinateList_T<coin>* coinsList);
 
+	//friend int zombie::changeLocation (player* mainCharacter);
 	//friend int coordinateList_T<coin>::playerCollectsCoins1x1 (player* collector);
 
     private:
@@ -147,6 +152,7 @@ class zombie : public gameObject
 	friend class list_T<zombie>;
 
 	friend bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow);
+	friend bool colliderPlayerVsZombie (player* Player, zombie* Zombie);
 	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList);
 
     private:
@@ -163,7 +169,8 @@ class zombie : public gameObject
         zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius);
         zombie& operator= (const zombie& right);
 
-        sf::Vector2f getPosition ();
+        //sf::Vector2f getPosition ();
+        int changePosition (player* mainCharacter);
 
         int draw();
 };

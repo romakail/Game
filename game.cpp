@@ -31,16 +31,48 @@ int game()
     //
 
     //
-    sf::Vector2f Vectors [6] = {sf::Vector2f (100, 50),
-    							sf::Vector2f (700, 50),
-    							sf::Vector2f (700, 500),
-    							sf::Vector2f (400, 700),
-    							sf::Vector2f (100, 500),
-    							sf::Vector2f (100, 50)	};
+    sf::Vector2f Vectors [29] = {sf::Vector2f (100, 100),
+    							sf::Vector2f (300, 100),
+    							sf::Vector2f (300, 150),
+    							sf::Vector2f (425, 150),
 
-	bool isDoorMassive [5] = {1, 0, 1, 0, 1};
+    							sf::Vector2f (575, 150),
+    							sf::Vector2f (700, 150),
+    							sf::Vector2f (700, 100),
+    							sf::Vector2f (900, 100),
+    							sf::Vector2f (900, 300),
+    							sf::Vector2f (850, 300),
+    							sf::Vector2f (850, 425),
 
-	castle ziggurat (5, Vectors, isDoorMassive);
+    							sf::Vector2f (850, 575),
+    							sf::Vector2f (850, 700),
+    							sf::Vector2f (900, 700),
+    							sf::Vector2f (900, 900),
+    							sf::Vector2f (700, 900),
+    							sf::Vector2f (700, 850),
+    							sf::Vector2f (575, 850),
+
+    							sf::Vector2f (425, 850),
+    							sf::Vector2f (300, 850),
+    							sf::Vector2f (300, 900),
+    							sf::Vector2f (100, 900),
+    							sf::Vector2f (100, 700),
+    							sf::Vector2f (150, 700),
+    							sf::Vector2f (150, 575),
+
+
+    							sf::Vector2f (150, 425),
+    							sf::Vector2f (150, 300),
+    							sf::Vector2f (100, 300),
+    							//sf::Vector2f (100, 500),
+    							sf::Vector2f (100, 100)	};
+
+
+//    							sf::Vector2f (700, 500),
+
+	bool isDoorMassive [28] = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0};
+
+	castle ziggurat (28, Vectors, isDoorMassive);
     //
 
     while (window->isOpen())
@@ -83,6 +115,8 @@ int game()
 
         managerZombiesVsArrows(&zombieList, &arrowsList, &coinsList);
 
+        zombieList.moveAllZombies(&mainCharacter);
+
         if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
         {
         	printf ("I am creating a coin\n");
@@ -92,8 +126,8 @@ int game()
         managerPlayerVsCoins(&mainCharacter, &coinsList);
 		//
 
-        //if (colliderPlayerVsCastle(&mainCharacter, &ziggurat))
-		//	printf (ANSI_COLOR_RED "Player and Castle collided" ANSI_COLOR_RESET "\n");
+        if (colliderPlayerVsCastle(&mainCharacter, &ziggurat))
+			printf (ANSI_COLOR_RED "Player and Castle collided" ANSI_COLOR_RESET "\n");
         //----drawing functions
 
         window->draw(backGround);
@@ -150,7 +184,8 @@ int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter)
 		prevArrowPtr = arrowsList->addElement(shootedArrow);
 	}
 */
-
+//
+/*
 	if (isLeftPressedNow)
 	{
         if (isLeftPressedPrev)
@@ -163,13 +198,14 @@ int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter)
 			prevArrowPtr = arrowsList->addElement(shootedArrow);
         }
 	}
-
+*/
 
 //	for shooting when left button is pressed
-/*
+
 	if (isLeftPressedNow)
 		arrowsList->addElement(mainCharacter->shoot(ARROW_SPEED));
-*/
+
+//
 
 	arrowsList->deleteUnnecessaryArrows();
 
@@ -186,6 +222,7 @@ gameObject::gameObject (sf::Vector2f position, sf::Vector2f speed)
     v = speed;
 }
 
+//--------------------------------------------------------------------------------------------------------------------
 
 int gameObject::changePosition ()
 {
@@ -193,6 +230,13 @@ int gameObject::changePosition ()
     pos.y += v.y;
 
     return 0;
+}
+
+//--------------------------------------------------------------------------------------------------------------------
+
+sf::Vector2f gameObject::getPosition()
+{
+    return pos;
 }
 
 //===============PLAYER FUNCTIONS=====================================================================================
@@ -452,9 +496,15 @@ zombie& zombie::operator= (const zombie& right)
 
 //-----------------------------------------------------------------------------------------------------------------------------
 
-sf::Vector2f zombie::getPosition ()
+int zombie::changePosition (player* mainCharacter)
 {
-    return pos;
+	float distance = sqrt ((mainCharacter->getPosition().x - pos.x) * (mainCharacter->getPosition().x - pos.x) + (mainCharacter->getPosition().y - pos.y) * (mainCharacter->getPosition().y - pos.y));
+
+	printf ("Vmax = %lg\n", Vmax);
+    pos.x += (mainCharacter->getPosition().x - pos.x) / distance * Vmax;
+    pos.y += (mainCharacter->getPosition().y - pos.y) / distance * Vmax;
+
+    return 0;
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -474,7 +524,7 @@ zombie createZombie ()
 	static float i = 0;
 	i++;
 
-    return zombie (sf::Vector2f(WINDOW_LENGHT/2 + cos (i) * 200, WINDOW_HEIGHT/2 + sin (i) * 200), 10, 25);
+    return zombie (sf::Vector2f(WINDOW_LENGHT/2 + cos (i) * 200, WINDOW_HEIGHT/2 + sin (i) * 200), ZOMBIE_SPEED, ZOMBIE_RADIUS);
 }
 
 
@@ -709,6 +759,24 @@ bool colliderPlayerVsCoin (player* Player, coin* Coin)
     assert (Coin->radius > 0);
 
     if ( ((Player->pos.x - Coin->pos.x) * (Player->pos.x - Coin->pos.x) + (Player->pos.y - Coin->pos.y) * (Player->pos.y - Coin->pos.y)) < (Player->radius + Coin->radius) * (Player->radius + Coin->radius))
+    	return 1;
+	else
+        return 0;
+
+	assert (0);
+	return 0;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------
+
+bool colliderPlayerVsZombie (player* Player, zombie* Zombie)
+{
+    assert (Player);
+    assert (Zombie);
+    assert (Player->radius > 0);
+    assert (Zombie->radius > 0);
+
+    if ( ((Player->pos.x - Zombie->pos.x) * (Player->pos.x - Zombie->pos.x) + (Player->pos.y - Zombie->pos.y) * (Player->pos.y - Zombie->pos.y)) < (Player->radius + Zombie->radius) * (Player->radius + Zombie->radius))
     	return 1;
 	else
         return 0;
@@ -961,6 +1029,26 @@ int collectCoins1x1 (player* collector, coordinateList_T<coin>* coinsList, int l
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+sf::Vector2f zombie::getPosition ()
+{
+    return pos;
+}
+*/
+//-----------------------------------------------------------------------------------------------------------------------------
 
 
 

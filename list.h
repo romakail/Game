@@ -34,6 +34,9 @@ class list_T
 
 		//For arrows:
 		int deleteUnnecessaryArrows();
+
+		//For zombies
+		int moveAllZombies(player* prey);
 };
 
 
@@ -385,7 +388,23 @@ int list_T<arrow>::deleteUnnecessaryArrows ()
 
 //--------------------------------------------------------------------------------------------
 
+template<>
+int list_T<zombie>::moveAllZombies(player* prey)
+{
+	//printf ("I have started moving zombies\n");
+    if ((head != NULL) && (tail != NULL))
+    {
+    	zombie* movedElement = head;
+    	while (movedElement != NULL)
+    	{
+    		if (!colliderPlayerVsZombie(prey, movedElement))
+				movedElement->changePosition(prey);
+            movedElement = movedElement->next;
+    	}
+    }
 
+    //printf ("I have finished moving zombies\n");
+}
 
 
 
