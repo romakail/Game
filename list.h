@@ -36,7 +36,7 @@ class list_T
 		int deleteUnnecessaryArrows();
 
 		//For zombies
-		int moveAllZombies(player* prey);
+		int moveAllZombies(player* prey, castle* Castle);
 };
 
 
@@ -389,7 +389,7 @@ int list_T<arrow>::deleteUnnecessaryArrows ()
 //--------------------------------------------------------------------------------------------
 
 template<>
-int list_T<zombie>::moveAllZombies(player* prey)
+int list_T<zombie>::moveAllZombies(player* prey, castle* Castle)
 {
 	//printf ("I have started moving zombies\n");
     if ((head != NULL) && (tail != NULL))
@@ -397,7 +397,7 @@ int list_T<zombie>::moveAllZombies(player* prey)
     	zombie* movedElement = head;
     	while (movedElement != NULL)
     	{
-    		if (!colliderPlayerVsZombie(prey, movedElement))
+    		if (!colliderPlayerVsZombie(prey, movedElement) && !colliderZombieVsCastle(movedElement, Castle))
 				movedElement->changePosition(prey);
             movedElement = movedElement->next;
     	}

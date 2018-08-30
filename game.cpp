@@ -110,12 +110,12 @@ int game()
 		//creating zombies
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
 		{
-			zombieList.addElement(createZombie());
+			zombieList.addElement(createZombie1());
 		}
 
         managerZombiesVsArrows(&zombieList, &arrowsList, &coinsList);
 
-        zombieList.moveAllZombies(&mainCharacter);
+        zombieList.moveAllZombies(&mainCharacter, &ziggurat);
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
         {
@@ -185,7 +185,7 @@ int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter)
 	}
 */
 //
-/*
+
 	if (isLeftPressedNow)
 	{
         if (isLeftPressedPrev)
@@ -198,13 +198,13 @@ int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter)
 			prevArrowPtr = arrowsList->addElement(shootedArrow);
         }
 	}
-*/
+
 
 //	for shooting when left button is pressed
-
+/*
 	if (isLeftPressedNow)
 		arrowsList->addElement(mainCharacter->shoot(ARROW_SPEED));
-
+*/
 //
 
 	arrowsList->deleteUnnecessaryArrows();
@@ -519,12 +519,29 @@ int zombie::draw ()
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
-zombie createZombie ()
+zombie createZombie1 ()
 {
 	static float i = 0;
 	i++;
 
     return zombie (sf::Vector2f(WINDOW_LENGHT/2 + cos (i) * 200, WINDOW_HEIGHT/2 + sin (i) * 200), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
+
+zombie createZombie2 ()
+{
+    switch (rand() % 4)
+	{
+		case 0 : return zombie (sf::Vector2f(rand() % 800 + 100,  25), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+			break;
+		case 1 : return zombie (sf::Vector2f(975, rand() % 800 + 100), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+			break;
+		case 2 : return zombie (sf::Vector2f(rand() % 800 + 100, 975), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+			break;
+		case 3 : return zombie (sf::Vector2f(25,  rand() % 800 + 100), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+			break;
+    }
 }
 
 
@@ -797,6 +814,23 @@ bool colliderPlayerVsCastle (player* Player, castle* Castle)
     {
         if ((colliderCircleVsDot (Player->pos, Player->radius, Castle->anglesMassive[i])) ||
 			(colliderCircleVsLine(Player->pos, Player->radius, Castle->anglesMassive[i], Castle->anglesMassive[i + 1])))
+            return 1;
+    }
+    return 0;
+}
+
+//---------------------------------------------------------------------------------------------------------------
+
+bool colliderZombieVsCastle (zombie* Zombie, castle* Castle)
+{
+    assert (Zombie);
+    assert (Castle);
+    assert (Zombie->radius > 0);
+
+    for (int i = 0; i < Castle->nAngles; i++)
+    {
+        if ((colliderCircleVsDot (Zombie->pos, Zombie->radius, Castle->anglesMassive[i])) ||
+			(colliderCircleVsLine(Zombie->pos, Zombie->radius, Castle->anglesMassive[i], Castle->anglesMassive[i + 1])))
             return 1;
     }
     return 0;

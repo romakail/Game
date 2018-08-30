@@ -20,7 +20,7 @@ const float ARROW_LENGHT = 40;
 
 const float ZOMBIE_RADIUS = 25;
 const int MAX_ZOMBIES = 35;
-const float ZOMBIE_SPEED = 5;
+const float ZOMBIE_SPEED = 3;
 
 const float COIN_RADIUS = 5;
 const int MAX_COINS = 200;
@@ -60,7 +60,8 @@ class coordinateList_T;
 //=========Functions================
 
 //Usual
-zombie createZombie ();
+zombie createZombie1 ();
+zombie createZombie2 ();
 int game ();
 int arrowPhysicsManager (list_T<arrow>* arrowsList, player* mainCharacter);
 
@@ -69,6 +70,7 @@ bool colliderZombieVsArrow (zombie* Zombie, arrow* Arrow);
 bool colliderPlayerVsCoin (player* Player, coin* Coin);
 bool colliderPlayerVsCastle (player* Player, castle* Castle);
 bool colliderPlayerVsZombie (player* Player, zombie* Zombie);
+bool colliderZombieVsCastle (zombie* Zombie, castle* Castle);
 bool colliderCircleVsLine (sf::Vector2f centre, float radius, sf::Vector2f dot1, sf::Vector2f dot2);
 bool colliderCircleVsDot (sf::Vector2f centre, float radius, sf::Vector2f dot);
 
@@ -153,6 +155,7 @@ class zombie : public gameObject
 
 	friend bool colliderZombieVsArrow(zombie* Zombie, arrow* Arrow);
 	friend bool colliderPlayerVsZombie (player* Player, zombie* Zombie);
+	friend bool colliderZombieVsCastle (zombie* Zombie, castle* Castle);
 	friend int managerZombiesVsArrows (list_T<zombie>* zombieList, list_T<arrow>* arrowsList, coordinateList_T<coin>* coinsList);
 
     private:
@@ -228,6 +231,7 @@ class wall
 class castle
 {
     friend bool colliderPlayerVsCastle (player* Player, castle* Castle);
+    friend bool colliderZombieVsCastle (zombie* Zombie, castle* Castle);
 
     private:
         int nAngles;
