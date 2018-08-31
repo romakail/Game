@@ -21,6 +21,7 @@ const float ARROW_LENGHT = 40;
 const float ZOMBIE_RADIUS = 25;
 const int MAX_ZOMBIES = 35;
 const float ZOMBIE_SPEED = 3;
+const float ZOMBIE_DAMAGE = 0.5;
 
 const float COIN_RADIUS = 5;
 const int MAX_COINS = 200;
@@ -31,6 +32,12 @@ const int COIN_LINES_IN_LIST_Y = 10;
 const float WALL_WIDTH = 20;
 const int DOOR_HITPOINTS = 100;
 const float EDGE_WIDTH = 20;
+const int DOOR_COLOR_R = 139;
+const int DOOR_COLOR_G = 69;
+const int DOOR_COLOR_B = 19;
+const int WALL_COLOR_R = 0;
+const int WALL_COLOR_G = 0;
+const int WALL_COLOR_B = 0;
 
 const double SQRT2 = sqrt (0.5);
 const float DEGREES_IN_RADIAN = 57.2956;
@@ -145,6 +152,7 @@ class player : public gameObject
         player (sf::Vector2f position, float mainCharacterSpeed, float mainCharacterRadius);
 
         int control ();
+		int changePosition (castle* castlePtr);
         int draw ();
         arrow shoot(float shootSpeed);
 };
@@ -161,6 +169,7 @@ class zombie : public gameObject
     private:
     	float Vmax;
     	float radius;
+    	float damage;
         sf::CircleShape shape;
 
 	protected:
@@ -169,11 +178,11 @@ class zombie : public gameObject
 
     public:
     	zombie ();
-        zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius);
+        zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius, float zombieDamage);
         zombie& operator= (const zombie& right);
 
         //sf::Vector2f getPosition ();
-        int changePosition (player* mainCharacter);
+        int changePosition (player* mainCharacter, castle* Castle);
 
         int draw();
 };
@@ -212,18 +221,20 @@ class wall
         sf::Vector2f end1;
         sf::Vector2f end2;
         bool isDoor;
+        bool isBroken;
         float width;
-        int hp;
+        float curHP;
+        float maxHP;
         float lenght;
         sf::RectangleShape shape;
         sf::CircleShape    edge;
 
     public:
-        wall (sf::Vector2f End1, sf::Vector2f End2, bool IsDoor, float Width, int hitPoints);
+        wall (sf::Vector2f End1, sf::Vector2f End2, bool IsDoor, float Width, float hitPoints);
         ~wall ();
         int draw ();
-
-
+        int getDamaged (float damage);
+        bool isBrokenIndicator ();
 };
 
 //------------------------------------------------------------------------

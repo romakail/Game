@@ -10,7 +10,7 @@ int game()
     sf::RectangleShape backGround (sf::Vector2f (WINDOW_HEIGHT, WINDOW_LENGHT));
     backGround.setFillColor(sf::Color::White);
 
-    player mainCharacter (sf::Vector2f(10, 10), MAIN_CHARACTER_SPEED, MAIN_CHARACTER_RADIUS);
+    player mainCharacter (sf::Vector2f(WINDOW_HEIGHT / 2, WINDOW_LENGHT / 2), MAIN_CHARACTER_SPEED, MAIN_CHARACTER_RADIUS);
 
     //
     arrow theOnlyArrow (sf::Vector2f (0, 0), sf::Vector2f (0, 0));
@@ -89,7 +89,7 @@ int game()
         //-----moving functions
 
         mainCharacter.control ();
-        mainCharacter.changePosition();
+        mainCharacter.changePosition(&ziggurat);
 
         //
         //theOnlyArrow.changePosition();
@@ -110,7 +110,7 @@ int game()
 		//creating zombies
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
 		{
-			zombieList.addElement(createZombie1());
+			zombieList.addElement(createZombie2());
 		}
 
         managerZombiesVsArrows(&zombieList, &arrowsList, &coinsList);
@@ -226,8 +226,11 @@ gameObject::gameObject (sf::Vector2f position, sf::Vector2f speed)
 
 int gameObject::changePosition ()
 {
-    pos.x += v.x;
-    pos.y += v.y;
+    //pos.x += v.x;
+    //pos.y += v.y;
+
+    pos += v;
+
 
     return 0;
 }
@@ -347,6 +350,18 @@ int player::control()
 
 //-------------------------------------------------------------------------------------------------------------------
 
+int player::changePosition (castle* castlePtr)
+{
+    pos += v;
+
+    if (colliderPlayerVsCastle(this, castlePtr))
+    	pos -= v;
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+
 int player::draw()
 {
     shape.setPosition(pos);
@@ -446,6 +461,7 @@ zombie::zombie () : gameObject(sf::Vector2f (0, 0), sf::Vector2f(0, 0))
 {
     Vmax = 0;
     radius = 0;
+    damage = 0;
 
     shape = sf::CircleShape(100.f);
     shape.setFillColor(sf::Color::Red);  //If something red is drawn it is a mistake
@@ -460,10 +476,11 @@ zombie::zombie () : gameObject(sf::Vector2f (0, 0), sf::Vector2f(0, 0))
 
 //-------------------------------------------------------------------------------------------------------------------------------
 
-zombie::zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius) : gameObject(position, sf::Vector2f(0, 0))
+zombie::zombie (sf::Vector2f position, float zombieSpeed, float zombieRadius, float zombieDamage) : gameObject(position, sf::Vector2f(0, 0))
 {
     Vmax = zombieSpeed;
 	radius = zombieRadius;
+	damage = zombieDamage;
 
     shape = sf::CircleShape(100.f);
     shape.setFillColor(sf::Color::Green);
@@ -486,6 +503,7 @@ zombie& zombie::operator= (const zombie& right)
 
     Vmax = right.Vmax;
     radius = right.radius;
+    damage = right.damage;
     shape = right.shape;
 
     pos = right.pos;
@@ -496,13 +514,16 @@ zombie& zombie::operator= (const zombie& right)
 
 //-----------------------------------------------------------------------------------------------------------------------------
 
-int zombie::changePosition (player* mainCharacter)
+int zombie::changePosition (player* mainCharacter, castle* Castle)
 {
 	float distance = sqrt ((mainCharacter->getPosition().x - pos.x) * (mainCharacter->getPosition().x - pos.x) + (mainCharacter->getPosition().y - pos.y) * (mainCharacter->getPosition().y - pos.y));
 
-	printf ("Vmax = %lg\n", Vmax);
-    pos.x += (mainCharacter->getPosition().x - pos.x) / distance * Vmax;
-    pos.y += (mainCharacter->getPosition().y - pos.y) / distance * Vmax;
+	//printf ("Vmax = %lg\n", Vmax);
+    //pos.x += (mainCharacter->getPosition().x - pos.x) / distance * Vmax;
+    //pos.y += (mainCharacter->getPosition().y - pos.y) / distance * Vmax;
+    if (!colliderZombieVsCastle(this, Castle))
+    	if (!colliderPlayerVsZombie(mainCharacter, this))
+	    	pos += (mainCharacter->getPosition() - pos) / distance * Vmax;
 
     return 0;
 }
@@ -524,7 +545,7 @@ zombie createZombie1 ()
 	static float i = 0;
 	i++;
 
-    return zombie (sf::Vector2f(WINDOW_LENGHT/2 + cos (i) * 200, WINDOW_HEIGHT/2 + sin (i) * 200), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+    return zombie (sf::Vector2f(WINDOW_LENGHT/2 + cos (i) * 200, WINDOW_HEIGHT/2 + sin (i) * 200), ZOMBIE_SPEED, ZOMBIE_RADIUS, ZOMBIE_DAMAGE);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------
@@ -533,13 +554,13 @@ zombie createZombie2 ()
 {
     switch (rand() % 4)
 	{
-		case 0 : return zombie (sf::Vector2f(rand() % 800 + 100,  25), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+		case 0 : return zombie (sf::Vector2f(rand() % 800 + 100,  25), ZOMBIE_SPEED, ZOMBIE_RADIUS, ZOMBIE_DAMAGE);
 			break;
-		case 1 : return zombie (sf::Vector2f(975, rand() % 800 + 100), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+		case 1 : return zombie (sf::Vector2f(975, rand() % 800 + 100), ZOMBIE_SPEED, ZOMBIE_RADIUS, ZOMBIE_DAMAGE);
 			break;
-		case 2 : return zombie (sf::Vector2f(rand() % 800 + 100, 975), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+		case 2 : return zombie (sf::Vector2f(rand() % 800 + 100, 975), ZOMBIE_SPEED, ZOMBIE_RADIUS, ZOMBIE_DAMAGE);
 			break;
-		case 3 : return zombie (sf::Vector2f(25,  rand() % 800 + 100), ZOMBIE_SPEED, ZOMBIE_RADIUS);
+		case 3 : return zombie (sf::Vector2f(25,  rand() % 800 + 100), ZOMBIE_SPEED, ZOMBIE_RADIUS, ZOMBIE_DAMAGE);
 			break;
     }
 }
@@ -606,7 +627,7 @@ int coin::draw ()
 
 //----------walls-----------------------------------------------------------------------------------
 
-wall::wall (sf::Vector2f End1, sf::Vector2f End2, bool IsDoor, float Width, int hitPoints)
+wall::wall (sf::Vector2f End1, sf::Vector2f End2, bool IsDoor, float Width, float hitPoints)
 {
 	printf ("I am constructing a wall\n");
     assert (Width > 0);
@@ -614,8 +635,10 @@ wall::wall (sf::Vector2f End1, sf::Vector2f End2, bool IsDoor, float Width, int 
     end1 = End1;
     end2 = End2;
     isDoor = IsDoor;
+    isBroken = 0;
 	width = Width;
-	hp = hitPoints;
+	maxHP = hitPoints;
+	curHP = hitPoints;
 
     lenght = sqrt ((end1.x - end2.x) * (end1.x - end2.x) + (end1.y - end2.y) * (end1.y - end2.y));
 
@@ -623,7 +646,7 @@ wall::wall (sf::Vector2f End1, sf::Vector2f End2, bool IsDoor, float Width, int 
     shape.setOrigin(sf::Vector2f(0, width/2));
     shape.setPosition(end1);
     if (isDoor)
-    	shape.setFillColor(sf::Color(139, 69, 19, 255));
+    	shape.setFillColor(sf::Color(DOOR_COLOR_R, DOOR_COLOR_G, DOOR_COLOR_B, 255));
 	else
         shape.setFillColor(sf::Color::Black);
 
@@ -654,10 +677,44 @@ wall::~wall()
 
 //------------------------------------------------------------------------------------------------------
 
+bool wall::isBrokenIndicator()
+{
+	return isBroken;
+}
+
+//------------------------------------------------------------------------------------------------------
+
 int wall::draw ()
 {
+    //const_cast<sf::Color&> (shape.getFillColor()).a = 255 * curHP / maxHP;		// can I do that and will it work or a copy is made somewhere
+
+
     window->draw(shape);
 	window->draw(edge);
+    return 0;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+int wall::getDamaged (float damage)
+{
+    curHP -= damage;
+	printf (ANSI_COLOR_RED "I am damaging a wall" ANSI_COLOR_RESET);
+
+    if (curHP < 0)
+    {
+        printf ("----I am broken((\n");
+        isBroken = 1;
+	}
+	else
+	{
+        printf ("----I am getting damaged\n");
+		if (isDoor)
+    		shape.setFillColor(sf::Color(DOOR_COLOR_R, DOOR_COLOR_G, DOOR_COLOR_B, 255 * curHP / maxHP));
+		else
+     	   shape.setFillColor(sf::Color(WALL_COLOR_R, WALL_COLOR_R, WALL_COLOR_R, 255 * curHP / maxHP));
+	}
+
     return 0;
 }
 
@@ -812,8 +869,10 @@ bool colliderPlayerVsCastle (player* Player, castle* Castle)
 
     for (int i = 0; i < Castle->nAngles; i++)
     {
-        if ((colliderCircleVsDot (Player->pos, Player->radius, Castle->anglesMassive[i])) ||
-			(colliderCircleVsLine(Player->pos, Player->radius, Castle->anglesMassive[i], Castle->anglesMassive[i + 1])))
+        if (((colliderCircleVsDot (Player->pos, Player->radius, Castle->anglesMassive[i])) ||
+			 (colliderCircleVsLine(Player->pos, Player->radius, Castle->anglesMassive[i], Castle->anglesMassive[i + 1]))) &&
+			 (!Castle->walls[i].isBrokenIndicator()))
+
             return 1;
     }
     return 0;
@@ -827,11 +886,19 @@ bool colliderZombieVsCastle (zombie* Zombie, castle* Castle)
     assert (Castle);
     assert (Zombie->radius > 0);
 
+    printf (ANSI_COLOR_RED "I am colliding zombie & castle" ANSI_COLOR_RESET "\n");
     for (int i = 0; i < Castle->nAngles; i++)
     {
-        if ((colliderCircleVsDot (Zombie->pos, Zombie->radius, Castle->anglesMassive[i])) ||
-			(colliderCircleVsLine(Zombie->pos, Zombie->radius, Castle->anglesMassive[i], Castle->anglesMassive[i + 1])))
-            return 1;
+        if (((colliderCircleVsDot (Zombie->pos, Zombie->radius, Castle->anglesMassive[i])) ||
+			 (colliderCircleVsLine(Zombie->pos, Zombie->radius, Castle->anglesMassive[i], Castle->anglesMassive[i + 1]))) &&
+			 (!Castle->walls[i].isBrokenIndicator()))
+
+		{
+			printf ( ANSI_COLOR_RED "Zombie collided with a wall" ANSI_COLOR_RESET "\n");
+			//Castle->walls[i].curHP -= Zombie->damage;
+			Castle->walls[i].getDamaged(Zombie->damage);
+			return 1;
+		}
     }
     return 0;
 }

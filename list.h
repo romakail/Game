@@ -397,10 +397,11 @@ int list_T<zombie>::moveAllZombies(player* prey, castle* Castle)
     	zombie* movedElement = head;
     	while (movedElement != NULL)
     	{
-    		if (!colliderPlayerVsZombie(prey, movedElement) && !colliderZombieVsCastle(movedElement, Castle))
-				movedElement->changePosition(prey);
+    		//if (!colliderPlayerVsZombie(prey, movedElement) && !colliderZombieVsCastle(movedElement, Castle))
+			movedElement->changePosition(prey, Castle);
             movedElement = movedElement->next;
     	}
+
     }
 
     //printf ("I have finished moving zombies\n");
